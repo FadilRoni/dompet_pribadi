@@ -4,6 +4,8 @@ import 'kategori_screen.dart';
 import 'akun_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
@@ -30,9 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
         String editKategori = item.kategori;
         String editAkun = item.akun;
         final TextEditingController nominalEditController =
-            TextEditingController(
-              text: formatRibuan(item.nominal),
-            );
+            TextEditingController(text: formatRibuan(item.nominal));
         final TextEditingController catatanEditController =
             TextEditingController(text: item.catatan);
 
@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     DropdownButtonFormField<String>(
-                      value: editTipe,
+                      initialValue: editTipe,
                       decoration: InputDecoration(labelText: "Tipe"),
                       items: ["Pengeluaran", "Pemasukan"]
                           .map(
@@ -82,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     DropdownButtonFormField<String>(
-                      value: editKategori.isEmpty ? null : editKategori,
+                      initialValue: editKategori.isEmpty ? null : editKategori,
                       decoration: InputDecoration(labelText: "Kategori"),
                       items: kategoriAktif
                           .map(
@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                     ),
                     DropdownButtonFormField<String>(
-                      value: editAkun,
+                      initialValue: editAkun,
                       decoration: InputDecoration(
                         labelText: "Simpan/Ambil Dari",
                       ),
@@ -124,7 +124,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (nominalEditController.text.isNotEmpty) {
                       setState(() {
                         item.nominal =
-                            double.tryParse(nominalEditController.text.replaceAll('.', '')) ?? 0;
+                            double.tryParse(
+                              nominalEditController.text.replaceAll('.', ''),
+                            ) ??
+                            0;
                         item.catatan = catatanEditController.text;
                         item.tipe = editTipe;
                         item.kategori = editKategori;
@@ -206,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bool masukRange =
           t.tanggal.isAfter(rangeMulai.subtract(Duration(days: 1))) &&
           t.tanggal.isBefore(rangeSelesai.add(Duration(days: 1)));
-      
+
       bool masukAkun = _filterAkun == "Semua" || t.akun == _filterAkun;
       bool lolosFilter = masukRange && masukAkun;
 
@@ -252,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     DropdownButtonFormField<String>(
-                      value: _pilihanTipe,
+                      initialValue: _pilihanTipe,
                       decoration: InputDecoration(labelText: "Tipe"),
                       items: ["Pengeluaran", "Pemasukan"]
                           .map(
@@ -262,7 +265,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (val) => setState(() => _pilihanTipe = val!),
                     ),
                     DropdownButtonFormField<String>(
-                      value: _pilihanKategori.isEmpty ? null : _pilihanKategori,
+                      initialValue: _pilihanKategori.isEmpty
+                          ? null
+                          : _pilihanKategori,
                       decoration: InputDecoration(labelText: "Kategori"),
                       items: kategoriAktif
                           .map(
@@ -273,7 +278,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           setState(() => _pilihanKategori = val!),
                     ),
                     DropdownButtonFormField<String>(
-                      value: _pilihanAkun,
+                      initialValue: _pilihanAkun,
                       decoration: InputDecoration(
                         labelText: "Simpan/Ambil Dari",
                       ),
@@ -293,7 +298,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               Transaksi(
                                 id: DateTime.now().toString(),
                                 nominal:
-                                    double.tryParse(_nominalController.text.replaceAll('.', '')) ??
+                                    double.tryParse(
+                                      _nominalController.text.replaceAll(
+                                        '.',
+                                        '',
+                                      ),
+                                    ) ??
                                     0,
                                 catatan: _catatanController.text,
                                 tipe: _pilihanTipe,
@@ -398,7 +408,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Text(
                               "Pemasukan",
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                             SizedBox(height: 4),
                             Text(
@@ -414,13 +427,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           width: 1,
                           height: 30,
-                          color: Colors.grey.withOpacity(0.3),
+                          color: Colors.grey.withValues(alpha: 0.3),
                         ),
                         Column(
                           children: [
                             Text(
                               "Pengeluaran",
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                             SizedBox(height: 4),
                             Text(
@@ -515,20 +531,45 @@ class _HomeScreenState extends State<HomeScreen> {
                   onSelected: (value) async {
                     final messenger = ScaffoldMessenger.of(context);
                     if (value == 'export') {
-                      await exportData();
-                      messenger.showSnackBar(
-                        SnackBar(content: Text('Data berhasil diekspor!')),
-                      );
+                      String? path = await exportData();
+                      if (path != null) {
+                        String displayPath = path;
+                        if (path.contains('/Android/data/')) {
+                          displayPath = 'Android/data/.../' + path.split('/').last;
+                        }
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('Backup berhasil diekspor ke:\n$displayPath'),
+                            duration: Duration(seconds: 6),
+                          ),
+                        );
+                      } else {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Gagal mengekspor data.')),
+                        );
+                      }
                     } else if (value == 'import') {
-                      bool success = await importData();
-                      if (success) {
+                      String result = await importData();
+                      if (result == "success") {
                         setState(() {}); // refresh UI
                         messenger.showSnackBar(
                           SnackBar(content: Text('Data berhasil diimpor!')),
                         );
+                      } else if (result == "not_found") {
+                        final file = await getBackupFile();
+                        String displayPath = file.path;
+                        if (displayPath.contains('/Android/data/')) {
+                          displayPath = 'Android/data/.../' + displayPath.split('/').last;
+                        }
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text('File backup tidak ditemukan.\nLetakkan file backup di:\n$displayPath'),
+                            duration: Duration(seconds: 7),
+                          ),
+                        );
                       } else {
                         messenger.showSnackBar(
-                          SnackBar(content: Text('Gagal/Batal mengimpor data.')),
+                          SnackBar(content: Text('Format data backup tidak valid atau gagal dibaca.')),
                         );
                       }
                     }
@@ -570,10 +611,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
         },
         items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Home",
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
             icon: Icon(Icons.category),
             label: "Kategori",

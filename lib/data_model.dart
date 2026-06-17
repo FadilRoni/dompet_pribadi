@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -84,18 +82,34 @@ Transaksi transaksiFromMap(Map<dynamic, dynamic> map) {
 
 // Serialisasi & Deserialisasi Kategori
 Map<String, dynamic> kategoriToMap(KategoriModel k) {
+  // Simpan index posisi ikon di daftarPilihanIkon (bukan codePoint)
+  int ikonIndex = daftarPilihanIkon.indexOf(k.ikon);
+  if (ikonIndex < 0) ikonIndex = 0; // fallback jika tidak ditemukan
   return {
     'nama': k.nama,
     'tipe': k.tipe,
-    'ikon': k.ikon.codePoint,
+    'ikon': ikonIndex,
   };
 }
 
 KategoriModel kategoriFromMap(Map<dynamic, dynamic> map) {
+  // Ambil ikon berdasarkan index; fallback ke index 0 jika tidak valid
+  final rawValue = map['ikon'] as int? ?? 0;
+  // Kompatibilitas: nilai lama berupa codePoint (> 1000), cari di list
+  IconData resolvedIcon;
+  if (rawValue < daftarPilihanIkon.length) {
+    resolvedIcon = daftarPilihanIkon[rawValue];
+  } else {
+    // Coba cocokkan berdasarkan codePoint (data lama)
+    resolvedIcon = daftarPilihanIkon.firstWhere(
+      (icon) => icon.codePoint == rawValue,
+      orElse: () => daftarPilihanIkon[0],
+    );
+  }
   return KategoriModel(
     nama: map['nama'] ?? '',
     tipe: map['tipe'] ?? '',
-    ikon: IconData(map['ikon'] ?? Icons.help.codePoint, fontFamily: 'MaterialIcons'),
+    ikon: resolvedIcon,
   );
 }
 
@@ -152,8 +166,18 @@ void loadData() {
   }
 }
 
+// Mendapatkan path file backup
+Future<File> getBackupFile() async {
+  Directory? dir;
+  if (Platform.isAndroid) {
+    dir = await getExternalStorageDirectory();
+  }
+  dir ??= await getApplicationDocumentsDirectory();
+  return File('${dir.path}/dompet_pribadi_backup.json');
+}
+
 // Eksport data ke JSON
-Future<void> exportData() async {
+Future<String?> exportData() async {
   try {
     final Map<String, dynamic> exportMap = {
       'transaksi': daftarTransaksi.map((t) => transaksiToMap(t)).toList(),
@@ -162,52 +186,46 @@ Future<void> exportData() async {
     };
     
     final jsonString = jsonEncode(exportMap);
-    
-    // Simpan file sementara di direktori temp
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/dompet_pribadi_backup.json');
+    final file = await getBackupFile();
     await file.writeAsString(jsonString);
-    
-    // Share file tersebut
-    await Share.shareXFiles([XFile(file.path)], text: 'Backup Data Catatan Keuangan');
+    return file.path;
   } catch (e) {
     print('Gagal mengekspor data: $e');
+    return null;
   }
 }
 
 // Import data dari JSON
-Future<bool> importData() async {
+Future<String> importData() async {
   try {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
-    
-    if (result != null && result.files.single.path != null) {
-      final file = File(result.files.single.path!);
-      final jsonString = await file.readAsString();
-      final Map<String, dynamic> importMap = jsonDecode(jsonString);
-      
-      if (importMap.containsKey('transaksi') &&
-          importMap.containsKey('kategori') &&
-          importMap.containsKey('akun')) {
-        
-        final List<dynamic> importedAkun = importMap['akun'];
-        final List<dynamic> importedKategori = importMap['kategori'];
-        final List<dynamic> importedTransaksi = importMap['transaksi'];
-        
-        masterAkun = List<String>.from(importedAkun);
-        masterKategori = importedKategori.map((k) => kategoriFromMap(k as Map)).toList();
-        daftarTransaksi = importedTransaksi.map((t) => transaksiFromMap(t as Map)).toList();
-        
-        saveData();
-        return true;
-      }
+    final file = await getBackupFile();
+    if (!await file.exists()) {
+      return "not_found";
     }
+    
+    final jsonString = await file.readAsString();
+    final Map<String, dynamic> importMap = jsonDecode(jsonString);
+    
+    if (importMap.containsKey('transaksi') &&
+        importMap.containsKey('kategori') &&
+        importMap.containsKey('akun')) {
+      
+      final List<dynamic> importedAkun = importMap['akun'];
+      final List<dynamic> importedKategori = importMap['kategori'];
+      final List<dynamic> importedTransaksi = importMap['transaksi'];
+      
+      masterAkun = List<String>.from(importedAkun);
+      masterKategori = importedKategori.map((k) => kategoriFromMap(k as Map)).toList();
+      daftarTransaksi = importedTransaksi.map((t) => transaksiFromMap(t as Map)).toList();
+      
+      saveData();
+      return "success";
+    }
+    return "error";
   } catch (e) {
     print('Gagal mengimpor data: $e');
+    return "error";
   }
-  return false;
 }
 
 // ================= FORMAT HELPER =================
