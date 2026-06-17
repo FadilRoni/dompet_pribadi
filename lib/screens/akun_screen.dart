@@ -28,6 +28,7 @@ class _AkunScreenState extends State<AkunScreen> {
                 if (_akunController.text.isNotEmpty) {
                   setState(() {
                     masterAkun.add(_akunController.text);
+                    saveData();
                     _akunController.clear();
                   });
                 }

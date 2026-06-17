@@ -31,9 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
         String editAkun = item.akun;
         final TextEditingController nominalEditController =
             TextEditingController(
-              text: item.nominal % 1 == 0
-                  ? item.nominal.toInt().toString()
-                  : item.nominal.toString(),
+              text: formatRibuan(item.nominal),
             );
         final TextEditingController catatanEditController =
             TextEditingController(text: item.catatan);
@@ -60,6 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextField(
                       controller: nominalEditController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [RibuanInputFormatter()],
                       decoration: InputDecoration(labelText: "Nominal (Rp)"),
                     ),
                     TextField(
@@ -125,12 +124,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (nominalEditController.text.isNotEmpty) {
                       setState(() {
                         item.nominal =
-                            double.tryParse(nominalEditController.text) ?? 0;
+                            double.tryParse(nominalEditController.text.replaceAll('.', '')) ?? 0;
                         item.catatan = catatanEditController.text;
                         item.tipe = editTipe;
                         item.kategori = editKategori;
                         item.akun = editAkun;
                       });
+                      saveData();
                       Navigator.pop(context);
                     }
                   },
@@ -165,6 +165,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   daftarTransaksi.removeWhere((t) => t.id == item.id);
                 });
+                saveData();
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
@@ -241,6 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     TextField(
                       controller: _nominalController,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [RibuanInputFormatter()],
                       decoration: InputDecoration(labelText: "Nominal (Rp)"),
                     ),
                     TextField(
@@ -291,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Transaksi(
                                 id: DateTime.now().toString(),
                                 nominal:
-                                    double.tryParse(_nominalController.text) ??
+                                    double.tryParse(_nominalController.text.replaceAll('.', '')) ??
                                     0,
                                 catatan: _catatanController.text,
                                 tipe: _pilihanTipe,
@@ -300,6 +302,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 tanggal: DateTime.now(),
                               ),
                             );
+                            saveData();
                             _nominalController.clear();
                             _catatanController.clear();
                           });
@@ -506,6 +509,55 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(appBarTitle),
         automaticallyImplyLeading: false,
+        actions: _currentIndex == 0
+            ? [
+                PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    final messenger = ScaffoldMessenger.of(context);
+                    if (value == 'export') {
+                      await exportData();
+                      messenger.showSnackBar(
+                        SnackBar(content: Text('Data berhasil diekspor!')),
+                      );
+                    } else if (value == 'import') {
+                      bool success = await importData();
+                      if (success) {
+                        setState(() {}); // refresh UI
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Data berhasil diimpor!')),
+                        );
+                      } else {
+                        messenger.showSnackBar(
+                          SnackBar(content: Text('Gagal/Batal mengimpor data.')),
+                        );
+                      }
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    PopupMenuItem(
+                      value: 'export',
+                      child: Row(
+                        children: [
+                          Icon(Icons.upload, color: Colors.blue),
+                          SizedBox(width: 8),
+                          Text('Ekspor Data (Backup)'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'import',
+                      child: Row(
+                        children: [
+                          Icon(Icons.download, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('Impor Data (Restore)'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ]
+            : null,
       ),
       body: activeBody,
       bottomNavigationBar: BottomNavigationBar(

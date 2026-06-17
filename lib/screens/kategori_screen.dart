@@ -97,6 +97,7 @@ class _KategoriScreenState extends State<KategoriScreen> {
                         ikon: _ikonTerpilih,
                       ),
                     );
+                    saveData();
                     _kategoriController.clear();
                   });
                 }
