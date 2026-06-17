@@ -11,10 +11,8 @@ class _AkunScreenState extends State<AkunScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Master Akun / Dompet")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             TextField(
@@ -51,7 +49,6 @@ class _AkunScreenState extends State<AkunScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
