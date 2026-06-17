@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _pilihanAkun = masterAkun.first;
   int _currentIndex = 0;
   String _filterAkun = "Semua";
+  String _filterKategori = "Semua";
 
   // Filter Tanggal Default: Bulan Juni 2026 (Menyesuaikan waktu saat ini)
   DateTime rangeMulai = DateTime(2026, 6, 1);
@@ -205,13 +206,25 @@ class _HomeScreenState extends State<HomeScreen> {
       _filterAkun = "Semua";
     }
 
+    // Proteksi pilihan akun jika akun dihapus dari masterAkun
+    if (!masterAkun.contains(_pilihanAkun) && masterAkun.isNotEmpty) {
+      _pilihanAkun = masterAkun.first;
+    }
+
+    // Proteksi filter kategori jika kategori dihapus dari masterKategori
+    final List<String> listKategoriUnik = masterKategori.map((k) => k.nama).toSet().toList();
+    if (!["Semua", ...listKategoriUnik].contains(_filterKategori)) {
+      _filterKategori = "Semua";
+    }
+
     List<Transaksi> riwayatTerfilter = daftarTransaksi.where((t) {
       bool masukRange =
           t.tanggal.isAfter(rangeMulai.subtract(Duration(days: 1))) &&
           t.tanggal.isBefore(rangeSelesai.add(Duration(days: 1)));
 
       bool masukAkun = _filterAkun == "Semua" || t.akun == _filterAkun;
-      bool lolosFilter = masukRange && masukAkun;
+      bool masukKategori = _filterKategori == "Semua" || t.kategori == _filterKategori;
+      bool lolosFilter = masukRange && masukAkun && masukKategori;
 
       if (lolosFilter) {
         if (t.tipe == "Pemasukan") totalPemasukan += t.nominal;
@@ -367,28 +380,59 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            // FILTER BY AKUN
+            // FILTER BY AKUN & KATEGORI
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Text(
-                  "Filter Akun: ",
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                // Filter Akun
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Akun: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 5),
+                    DropdownButton<String>(
+                      value: _filterAkun,
+                      items: ["Semua", ...masterAkun].map((String val) {
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _filterAkun = val!;
+                        });
+                      },
+                    ),
+                  ],
                 ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: _filterAkun,
-                  items: ["Semua", ...masterAkun].map((String val) {
-                    return DropdownMenuItem<String>(
-                      value: val,
-                      child: Text(val),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _filterAkun = val!;
-                    });
-                  },
+                // Filter Kategori
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Kategori: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 5),
+                    DropdownButton<String>(
+                      value: _filterKategori,
+                      items: ["Semua", ...listKategoriUnik].map((String val) {
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _filterKategori = val!;
+                        });
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
