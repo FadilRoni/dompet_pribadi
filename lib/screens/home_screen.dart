@@ -16,8 +16,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _nominalController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
-  final label = '';
-  bool isHideSaldo = true;
+  bool isHideSaldo = isHideSaldoGlobal;
 
   String _pilihanTipe = "Pengeluaran";
   String _pilihanKategori = "";
@@ -1131,7 +1130,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () {
                             setState(() {
                               isHideSaldo = !isHideSaldo;
+                              isHideSaldoGlobal = isHideSaldo;
                             });
+                            saveData();
                           },
                           icon: Icon(
                             isHideSaldo

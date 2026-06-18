@@ -162,6 +162,7 @@ List<String> masterAkun = [];
 List<Transaksi> daftarTransaksi = [];
 List<KontakUtang> daftarKontakUtang = [];
 List<Asset> daftarAsset = [];
+bool isHideSaldoGlobal = true;
 
 // Serialisasi & Deserialisasi Asset
 Map<String, dynamic> assetToMap(Asset a) {
@@ -311,11 +312,15 @@ void saveData() {
   box.put('akun', masterAkun);
   box.put('kontakUtang', kontakUtangMaps);
   box.put('asset', assetMaps);
+  box.put('isHideSaldo', isHideSaldoGlobal);
 }
 
 // Memuat data dari Hive
 void loadData() {
   final box = Hive.box('dompet_pribadi_box');
+
+  // Load isHideSaldo
+  isHideSaldoGlobal = box.get('isHideSaldo', defaultValue: true);
 
   // Load Akun (jika kosong, buat default)
   final List<dynamic>? savedAkun = box.get('akun');
@@ -377,8 +382,6 @@ void loadData() {
       KategoriModel(nama: "Hutang", tipe: "Pemasukan", ikon: Icons.payments),
     );
   }
-  saveData();
-
   // Load Transaksi
   final List<dynamic>? savedTransaksi = box.get('transaksi');
   if (savedTransaksi != null) {
@@ -416,6 +419,9 @@ void loadData() {
   } else {
     daftarAsset = [];
   }
+
+  // Simpan data (untuk menyimpan migrasi kategori jika ada perubahan)
+  saveData();
 }
 
 // Mendapatkan path file backup

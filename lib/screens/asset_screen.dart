@@ -42,6 +42,14 @@ Color _cryptoColor(String symbol) {
   return map[symbol] ?? Colors.blueGrey;
 }
 
+class LivePrice {
+  final double last;
+  final double buy;  // Harga beli di market (ask)
+  final double sell; // Harga jual di market (bid)
+
+  LivePrice({required this.last, required this.buy, required this.sell});
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 class AssetScreen extends StatefulWidget {
   const AssetScreen({super.key});
@@ -51,7 +59,7 @@ class AssetScreen extends StatefulWidget {
 }
 
 class _AssetScreenState extends State<AssetScreen> {
-  Map<String, double> _hargaLive = {};
+  Map<String, LivePrice> _hargaLive = {};
   bool _isLoading = false;
   String? _errorMsg;
   DateTime? _lastUpdated;
@@ -77,15 +85,24 @@ class _AssetScreenState extends State<AssetScreen> {
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body) as Map<String, dynamic>;
         final tickers = data['tickers'] as Map<String, dynamic>;
-        final Map<String, double> harga = {};
+        final Map<String, LivePrice> harga = {};
 
         // Parse harga untuk setiap crypto yang dimiliki pengguna
         for (final crypto in cryptoList) {
           final key = '${crypto.symbol.toLowerCase()}_idr';
           if (tickers.containsKey(key)) {
-            final last = tickers[key]['last'];
-            final val = double.tryParse(last.toString());
-            if (val != null) harga[crypto.symbol] = val;
+            final ticker = tickers[key] as Map<String, dynamic>;
+            final lastVal = double.tryParse(ticker['last']?.toString() ?? '') ?? 0.0;
+            // Indodax 'buy' = bid/harga jual tertinggi dari buyer
+            // Indodax 'sell' = ask/harga beli terendah dari seller
+            final buyVal = double.tryParse(ticker['buy']?.toString() ?? '') ?? lastVal;
+            final sellVal = double.tryParse(ticker['sell']?.toString() ?? '') ?? lastVal;
+            
+            harga[crypto.symbol] = LivePrice(
+              last: lastVal,
+              buy: sellVal, // Harga untuk beli (dari orderbook sell)
+              sell: buyVal, // Harga untuk jual (dari orderbook buy)
+            );
           }
         }
 
@@ -124,7 +141,7 @@ class _AssetScreenState extends State<AssetScreen> {
   }
 
   double _nilaiSekarang(Asset a) {
-    final harga = _hargaLive[a.symbol] ?? 0;
+    final harga = _hargaLive[a.symbol]?.last ?? 0;
     return a.quantity * harga;
   }
 
@@ -196,7 +213,7 @@ class _AssetScreenState extends State<AssetScreen> {
 
                   // Pilih Kripto
                   DropdownButtonFormField<CryptoMaster>(
-                    value: selectedCrypto,
+                    initialValue: selectedCrypto,
                     decoration: InputDecoration(
                       labelText: 'Pilih Kripto',
                       border: OutlineInputBorder(
@@ -708,10 +725,31 @@ class _AssetScreenState extends State<AssetScreen> {
                   _detailItem(
                       'Qty', _fmtQty(a.quantity), Colors.grey[600]!),
                   _detailItem(
+                    'Harga Beli',
+                    _hargaLive[a.symbol] == null
+                        ? '—'
+                        : 'Rp ${_fmt(_hargaLive[a.symbol]!.buy)}',
+                    Colors.grey[600]!,
+                  ),
+                  _detailItem(
+                    'Harga Jual',
+                    _hargaLive[a.symbol] == null
+                        ? '—'
+                        : 'Rp ${_fmt(_hargaLive[a.symbol]!.sell)}',
+                    Colors.grey[600]!,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  _detailItem(
+                      'Rata-rata Beli', 'Rp ${_fmt(a.buyPrice)}', Colors.grey[600]!),
+                  _detailItem(
                     'Harga Kini',
                     hargaSekarang == null
                         ? '—'
-                        : 'Rp ${_fmt(hargaSekarang)}',
+                        : 'Rp ${_fmt(hargaSekarang.last)}',
                     Colors.grey[600]!,
                   ),
                   _detailItem(
