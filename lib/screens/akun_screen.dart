@@ -9,9 +9,168 @@ class AkunScreen extends StatefulWidget {
 }
 
 class _AkunScreenState extends State<AkunScreen> {
+  /// Hitung saldo bersih untuk satu akun (Pemasukan - Pengeluaran)
+  double _hitungSaldo(String namaAkun) {
+    double saldo = 0;
+    for (var t in daftarTransaksi) {
+      if (t.akun == namaAkun) {
+        if (t.tipe == "Pemasukan") {
+          saldo += t.nominal;
+        } else {
+          saldo -= t.nominal;
+        }
+      }
+    }
+    return saldo;
+  }
+
+  void _showDetailAkun(int index) {
+    final namaAkun = masterAkun[index];
+    final saldo = _hitungSaldo(namaAkun);
+    final isPositif = saldo >= 0;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Icon + nama akun
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Icon(Icons.account_balance_wallet,
+                        color: Colors.blue, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      namaAkun,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+              // Saldo
+              Row(
+                children: [
+                  Icon(Icons.account_balance_outlined,
+                      size: 18, color: Colors.grey[600]),
+                  const SizedBox(width: 10),
+                  Text("Saldo: ",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(
+                    "Rp ${formatRibuan(saldo.abs())}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isPositif ? Colors.green[700] : Colors.red[700],
+                    ),
+                  ),
+                  if (!isPositif)
+                    Text(" (minus)",
+                        style: TextStyle(color: Colors.red[400], fontSize: 12)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Jumlah transaksi
+              Row(
+                children: [
+                  Icon(Icons.receipt_long_outlined,
+                      size: 18, color: Colors.grey[600]),
+                  const SizedBox(width: 10),
+                  Text("Transaksi: ",
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(
+                    "${daftarTransaksi.where((t) => t.akun == namaAkun).length} transaksi",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      label:
+                          const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _hapusAkun(index);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text("Edit"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _editAkun(index);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _editAkun(int index) {
     final String oldNama = masterAkun[index];
-    final TextEditingController editController = TextEditingController(text: oldNama);
+    final TextEditingController editController = TextEditingController(
+      text: oldNama,
+    );
 
     showDialog(
       context: context,
@@ -128,8 +287,11 @@ class _AkunScreenState extends State<AkunScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.account_balance_wallet_outlined,
-                            size: 64, color: Colors.grey[500]),
+                        Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: 64,
+                          color: Colors.grey[500],
+                        ),
                         const SizedBox(height: 10),
                         const Text(
                           "Belum ada akun/dompet.\nTambah akun baru via tombol \"+\" di bawah.",
@@ -143,30 +305,40 @@ class _AkunScreenState extends State<AkunScreen> {
                     itemCount: masterAkun.length,
                     itemBuilder: (c, i) {
                       final akunNama = masterAkun[i];
+                      final saldo = _hitungSaldo(akunNama);
+                      final isPositif = saldo >= 0;
+
                       return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
                         child: ListTile(
-                          leading: Icon(Icons.account_balance_wallet,
-                              color: Colors.blue),
-                          title: Text(akunNama),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: Icon(Icons.edit,
-                                    color: Colors.blue, size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: BoxConstraints(),
-                                onPressed: () => _editAkun(i),
-                              ),
-                              SizedBox(width: 8),
-                              IconButton(
-                                icon: Icon(Icons.delete,
-                                    color: Colors.red, size: 20),
-                                padding: EdgeInsets.zero,
-                                constraints: BoxConstraints(),
-                                onPressed: () => _hapusAkun(i),
-                              ),
-                            ],
+                          onTap: () => _showDetailAkun(i),
+                          leading: Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.account_balance_wallet,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          title: Text(
+                            akunNama,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            "Saldo: Rp ${formatRibuan(saldo.abs())}${!isPositif ? " (minus)" : ""}",
+                            style: TextStyle(
+                              color: isPositif ? Colors.green[700] : Colors.red[700],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          trailing: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey,
                           ),
                         ),
                       );
