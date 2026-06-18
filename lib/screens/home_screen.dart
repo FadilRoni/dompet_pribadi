@@ -4,6 +4,7 @@ import 'kategori_screen.dart';
 import 'akun_screen.dart';
 import 'grafik_screen.dart';
 import 'utang_screen.dart';
+import 'asset_screen.dart';
 
 
 class HomeScreen extends StatefulWidget {
@@ -1208,9 +1209,12 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (_currentIndex == 3) {
       appBarTitle = "Master Akun / Dompet";
       activeBody = AkunScreen();
-    } else {
+    } else if (_currentIndex == 4) {
       appBarTitle = "Utang & Piutang";
       activeBody = const UtangScreen();
+    } else {
+      appBarTitle = "Portofolio Aset Kripto";
+      activeBody = const AssetScreen();
     }
 
     return Scaffold(
@@ -1319,7 +1323,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
               child: const Icon(Icons.add),
             )
-          : null,
+          : null, // AssetScreen manages its own FAB
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -1345,6 +1349,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.assignment_ind_outlined),
             label: "Utang",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.currency_bitcoin),
+            label: "Aset",
           ),
         ],
       ),

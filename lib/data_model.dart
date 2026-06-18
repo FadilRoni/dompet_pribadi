@@ -25,6 +25,64 @@ class Transaksi {
   });
 }
 
+// STRUKTUR UNTUK ASSET CRYPTO
+class Asset {
+  String id;
+  String symbol;
+  String name;
+  double quantity;
+  double buyPrice; // rata-rata harga beli dalam IDR
+
+  Asset({
+    required this.id,
+    required this.symbol,
+    required this.name,
+    required this.quantity,
+    required this.buyPrice,
+  });
+}
+
+class CryptoMaster {
+  final String symbol;
+  final String name;
+
+  const CryptoMaster({required this.symbol, required this.name});
+}
+
+const List<CryptoMaster> cryptoList = [
+  CryptoMaster(symbol: 'BTC', name: 'Bitcoin'),
+  CryptoMaster(symbol: 'ETH', name: 'Ethereum'),
+  CryptoMaster(symbol: 'USDT', name: 'Tether USD'),
+  CryptoMaster(symbol: 'BNB', name: 'BNB'),
+  CryptoMaster(symbol: 'SOL', name: 'Solana'),
+  CryptoMaster(symbol: 'XRP', name: 'XRP'),
+  CryptoMaster(symbol: 'ADA', name: 'Cardano'),
+  CryptoMaster(symbol: 'DOGE', name: 'Dogecoin'),
+  CryptoMaster(symbol: 'TRX', name: 'Tron'),
+  CryptoMaster(symbol: 'POL', name: 'Polygon (POL)'),
+  CryptoMaster(symbol: 'DOT', name: 'Polkadot'),
+  CryptoMaster(symbol: 'AVAX', name: 'Avalanche'),
+  CryptoMaster(symbol: 'LINK', name: 'Chainlink'),
+  CryptoMaster(symbol: 'LTC', name: 'Litecoin'),
+  CryptoMaster(symbol: 'SHIB', name: 'Shiba Inu'),
+  CryptoMaster(symbol: 'XLM', name: 'Stellar'),
+  CryptoMaster(symbol: 'ATOM', name: 'Cosmos'),
+  CryptoMaster(symbol: 'NEAR', name: 'NEAR Protocol'),
+  CryptoMaster(symbol: 'XAUT', name: 'Tether Gold'),
+  CryptoMaster(symbol: 'UNI', name: 'Uniswap'),
+  CryptoMaster(symbol: 'ARB', name: 'Arbitrum'),
+  CryptoMaster(symbol: 'OP', name: 'Optimism'),
+  CryptoMaster(symbol: 'PEPE', name: 'Pepe'),
+  CryptoMaster(symbol: 'TON', name: 'Toncoin'),
+  CryptoMaster(symbol: 'SUI', name: 'Sui'),
+  CryptoMaster(symbol: 'APT', name: 'Aptos'),
+  CryptoMaster(symbol: 'SAND', name: 'The Sandbox'),
+  CryptoMaster(symbol: 'MANA', name: 'Decentraland'),
+  CryptoMaster(symbol: 'FTM', name: 'Fantom'),
+  CryptoMaster(symbol: 'INJ', name: 'Injective'),
+  CryptoMaster(symbol: 'SEI', name: 'Sei'),
+];
+
 // STRUKTUR BARU UNTUK KATEGORI
 class KategoriModel {
   String nama;
@@ -83,7 +141,6 @@ class KontakUtang {
   }
 }
 
-
 // DAFTAR PILIHAN LOGO/IKON YANG BISA DIPILIH USER
 List<IconData> daftarPilihanIkon = [
   Icons.fastfood, // Makanan
@@ -104,6 +161,28 @@ List<KategoriModel> masterKategori = [];
 List<String> masterAkun = [];
 List<Transaksi> daftarTransaksi = [];
 List<KontakUtang> daftarKontakUtang = [];
+List<Asset> daftarAsset = [];
+
+// Serialisasi & Deserialisasi Asset
+Map<String, dynamic> assetToMap(Asset a) {
+  return {
+    'id': a.id,
+    'symbol': a.symbol,
+    'name': a.name,
+    'quantity': a.quantity,
+    'buyPrice': a.buyPrice,
+  };
+}
+
+Asset assetFromMap(Map<dynamic, dynamic> map) {
+  return Asset(
+    id: map['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    symbol: map['symbol']?.toString() ?? '',
+    name: map['name']?.toString() ?? '',
+    quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+    buyPrice: (map['buyPrice'] as num?)?.toDouble() ?? 0.0,
+  );
+}
 
 // Serialisasi & Deserialisasi TransaksiUtang
 Map<String, dynamic> transaksiUtangToMap(TransaksiUtang t) {
@@ -145,11 +224,13 @@ KontakUtang kontakUtangFromMap(Map<dynamic, dynamic> map) {
     id: map['id'] ?? '',
     nama: map['nama'] ?? '',
     telepon: map['telepon'] ?? '',
-    tanggalDibuat: DateTime.tryParse(map['tanggalDibuat'] ?? '') ?? DateTime.now(),
-    transaksi: txList != null ? txList.map((t) => transaksiUtangFromMap(t as Map)).toList() : [],
+    tanggalDibuat:
+        DateTime.tryParse(map['tanggalDibuat'] ?? '') ?? DateTime.now(),
+    transaksi: txList != null
+        ? txList.map((t) => transaksiUtangFromMap(t as Map)).toList()
+        : [],
   );
 }
-
 
 // ================= HIVE DATABASE & EXPORT/IMPORT =================
 
@@ -183,11 +264,7 @@ Map<String, dynamic> kategoriToMap(KategoriModel k) {
   // Simpan index posisi ikon di daftarPilihanIkon (bukan codePoint)
   int ikonIndex = daftarPilihanIkon.indexOf(k.ikon);
   if (ikonIndex < 0) ikonIndex = 0; // fallback jika tidak ditemukan
-  return {
-    'nama': k.nama,
-    'tipe': k.tipe,
-    'ikon': ikonIndex,
-  };
+  return {'nama': k.nama, 'tipe': k.tipe, 'ikon': ikonIndex};
 }
 
 KategoriModel kategoriFromMap(Map<dynamic, dynamic> map) {
@@ -224,18 +301,22 @@ void saveData() {
 
   final transaksiMaps = daftarTransaksi.map((t) => transaksiToMap(t)).toList();
   final kategoriMaps = masterKategori.map((k) => kategoriToMap(k)).toList();
-  final kontakUtangMaps = daftarKontakUtang.map((k) => kontakUtangToMap(k)).toList();
+  final kontakUtangMaps = daftarKontakUtang
+      .map((k) => kontakUtangToMap(k))
+      .toList();
+  final assetMaps = daftarAsset.map((a) => assetToMap(a)).toList();
 
   box.put('transaksi', transaksiMaps);
   box.put('kategori', kategoriMaps);
   box.put('akun', masterAkun);
   box.put('kontakUtang', kontakUtangMaps);
+  box.put('asset', assetMaps);
 }
 
 // Memuat data dari Hive
 void loadData() {
   final box = Hive.box('dompet_pribadi_box');
-  
+
   // Load Akun (jika kosong, buat default)
   final List<dynamic>? savedAkun = box.get('akun');
   if (savedAkun != null) {
@@ -243,43 +324,67 @@ void loadData() {
   } else {
     masterAkun = ["Tunai", "SeaBank", "SuperBank", "Krom Bank"];
   }
-  
+
   // Load Kategori (jika kosong, buat default)
   final List<dynamic>? savedKategori = box.get('kategori');
   if (savedKategori != null) {
-    masterKategori = savedKategori.map((k) => kategoriFromMap(k as Map)).toList();
+    masterKategori = savedKategori
+        .map((k) => kategoriFromMap(k as Map))
+        .toList();
   } else {
     masterKategori = [
       KategoriModel(nama: "Makanan", tipe: "Pengeluaran", ikon: Icons.fastfood),
-      KategoriModel(nama: "Transportasi", tipe: "Pengeluaran", ikon: Icons.directions_car),
+      KategoriModel(
+        nama: "Transportasi",
+        tipe: "Pengeluaran",
+        ikon: Icons.directions_car,
+      ),
       KategoriModel(nama: "Gaji", tipe: "Pemasukan", ikon: Icons.payments),
       KategoriModel(nama: "Bonus", tipe: "Pemasukan", ikon: Icons.trending_up),
     ];
   }
 
   // Pastikan kategori "Piutang" & "Hutang" ada untuk Pemasukan dan Pengeluaran
-  final hasPiutangPengeluaran = masterKategori.any((k) => k.nama == "Piutang" && k.tipe == "Pengeluaran");
+  final hasPiutangPengeluaran = masterKategori.any(
+    (k) => k.nama == "Piutang" && k.tipe == "Pengeluaran",
+  );
   if (!hasPiutangPengeluaran) {
-    masterKategori.add(KategoriModel(nama: "Piutang", tipe: "Pengeluaran", ikon: Icons.payments));
+    masterKategori.add(
+      KategoriModel(nama: "Piutang", tipe: "Pengeluaran", ikon: Icons.payments),
+    );
   }
-  final hasPiutangPemasukan = masterKategori.any((k) => k.nama == "Piutang" && k.tipe == "Pemasukan");
+  final hasPiutangPemasukan = masterKategori.any(
+    (k) => k.nama == "Piutang" && k.tipe == "Pemasukan",
+  );
   if (!hasPiutangPemasukan) {
-    masterKategori.add(KategoriModel(nama: "Piutang", tipe: "Pemasukan", ikon: Icons.payments));
+    masterKategori.add(
+      KategoriModel(nama: "Piutang", tipe: "Pemasukan", ikon: Icons.payments),
+    );
   }
-  final hasHutangPengeluaran = masterKategori.any((k) => k.nama == "Hutang" && k.tipe == "Pengeluaran");
+  final hasHutangPengeluaran = masterKategori.any(
+    (k) => k.nama == "Hutang" && k.tipe == "Pengeluaran",
+  );
   if (!hasHutangPengeluaran) {
-    masterKategori.add(KategoriModel(nama: "Hutang", tipe: "Pengeluaran", ikon: Icons.payments));
+    masterKategori.add(
+      KategoriModel(nama: "Hutang", tipe: "Pengeluaran", ikon: Icons.payments),
+    );
   }
-  final hasHutangPemasukan = masterKategori.any((k) => k.nama == "Hutang" && k.tipe == "Pemasukan");
+  final hasHutangPemasukan = masterKategori.any(
+    (k) => k.nama == "Hutang" && k.tipe == "Pemasukan",
+  );
   if (!hasHutangPemasukan) {
-    masterKategori.add(KategoriModel(nama: "Hutang", tipe: "Pemasukan", ikon: Icons.payments));
+    masterKategori.add(
+      KategoriModel(nama: "Hutang", tipe: "Pemasukan", ikon: Icons.payments),
+    );
   }
   saveData();
-  
+
   // Load Transaksi
   final List<dynamic>? savedTransaksi = box.get('transaksi');
   if (savedTransaksi != null) {
-    daftarTransaksi = savedTransaksi.map((t) => transaksiFromMap(t as Map)).toList();
+    daftarTransaksi = savedTransaksi
+        .map((t) => transaksiFromMap(t as Map))
+        .toList();
   } else {
     daftarTransaksi = [];
   }
@@ -300,6 +405,16 @@ void loadData() {
     }
   } else {
     daftarKontakUtang = [];
+  }
+
+  // Load Asset
+  final List<dynamic>? savedAsset = box.get('asset');
+  if (savedAsset != null) {
+    daftarAsset = savedAsset
+        .map((a) => assetFromMap(a as Map))
+        .toList();
+  } else {
+    daftarAsset = [];
   }
 }
 
@@ -322,8 +437,9 @@ Future<String?> exportData() async {
       'kategori': masterKategori.map((k) => kategoriToMap(k)).toList(),
       'akun': masterAkun,
       'kontakUtang': daftarKontakUtang.map((k) => kontakUtangToMap(k)).toList(),
+      'asset': daftarAsset.map((a) => assetToMap(a)).toList(),
     };
-    
+
     final jsonString = jsonEncode(exportMap);
     final file = await getBackupFile();
     await file.writeAsString(jsonString);
@@ -341,29 +457,43 @@ Future<String> importData() async {
     if (!await file.exists()) {
       return "not_found";
     }
-    
+
     final jsonString = await file.readAsString();
     final Map<String, dynamic> importMap = jsonDecode(jsonString);
-    
+
     if (importMap.containsKey('transaksi') &&
         importMap.containsKey('kategori') &&
         importMap.containsKey('akun')) {
-      
       final List<dynamic> importedAkun = importMap['akun'];
       final List<dynamic> importedKategori = importMap['kategori'];
       final List<dynamic> importedTransaksi = importMap['transaksi'];
-      
+
       masterAkun = List<String>.from(importedAkun);
-      masterKategori = importedKategori.map((k) => kategoriFromMap(k as Map)).toList();
-      daftarTransaksi = importedTransaksi.map((t) => transaksiFromMap(t as Map)).toList();
-      
+      masterKategori = importedKategori
+          .map((k) => kategoriFromMap(k as Map))
+          .toList();
+      daftarTransaksi = importedTransaksi
+          .map((t) => transaksiFromMap(t as Map))
+          .toList();
+
       if (importMap.containsKey('kontakUtang')) {
         final List<dynamic> importedKontakUtang = importMap['kontakUtang'];
-        daftarKontakUtang = importedKontakUtang.map((k) => kontakUtangFromMap(k as Map)).toList();
+        daftarKontakUtang = importedKontakUtang
+            .map((k) => kontakUtangFromMap(k as Map))
+            .toList();
       } else {
         daftarKontakUtang = [];
       }
-      
+
+      if (importMap.containsKey('asset')) {
+        final List<dynamic> importedAsset = importMap['asset'];
+        daftarAsset = importedAsset
+            .map((a) => assetFromMap(a as Map))
+            .toList();
+      } else {
+        daftarAsset = [];
+      }
+
       saveData();
       return "success";
     }
@@ -388,7 +518,10 @@ String formatRibuan(double value) {
 
   // Format integer part with dot as thousands separator
   RegExp reg = RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))');
-  String formattedInteger = integerPart.replaceAllMapped(reg, (Match match) => '${match[1]}.');
+  String formattedInteger = integerPart.replaceAllMapped(
+    reg,
+    (Match match) => '${match[1]}.',
+  );
 
   String result;
   if (decimalPart == '0' || decimalPart.isEmpty) {
@@ -402,7 +535,10 @@ String formatRibuan(double value) {
 
 class RibuanInputFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.text.isEmpty) {
       return newValue.copyWith(text: '');
     }
@@ -410,7 +546,9 @@ class RibuanInputFormatter extends TextInputFormatter {
     // Ambil jumlah angka sebelum kursor pada input baru
     int cursorPosition = newValue.selection.end;
     String textBeforeCursor = newValue.text.substring(0, cursorPosition);
-    int digitsBeforeCursor = textBeforeCursor.replaceAll(RegExp(r'[^\d]'), '').length;
+    int digitsBeforeCursor = textBeforeCursor
+        .replaceAll(RegExp(r'[^\d]'), '')
+        .length;
 
     // Bersihkan semua non-digit
     String cleanText = newValue.text.replaceAll(RegExp(r'[^\d]'), '');
@@ -445,7 +583,8 @@ void syncTransaksiUtangToMainList(KontakUtang kontak, TransaksiUtang tx) {
   // Tentukan tipe & kategori untuk transaksi utama
   String mainTipe = tx.tipe == "Piutang" ? "Pengeluaran" : "Pemasukan";
   String mainKategori = tx.tipe == "Piutang" ? "Piutang" : "Hutang";
-  String mainCatatan = "${kontak.nama}: ${tx.catatan.isNotEmpty ? tx.catatan : tx.tipe}";
+  String mainCatatan =
+      "${kontak.nama}: ${tx.catatan.isNotEmpty ? tx.catatan : tx.tipe}";
 
   // Cari apakah transaksi dengan ID ini sudah ada di daftarTransaksi
   final existingIndex = daftarTransaksi.indexWhere((t) => t.id == tx.id);
@@ -462,15 +601,17 @@ void syncTransaksiUtangToMainList(KontakUtang kontak, TransaksiUtang tx) {
     );
   } else {
     // Add new
-    daftarTransaksi.add(Transaksi(
-      id: tx.id,
-      nominal: tx.nominal,
-      catatan: mainCatatan,
-      tipe: mainTipe,
-      kategori: mainKategori,
-      akun: tx.akun,
-      tanggal: tx.tanggal,
-    ));
+    daftarTransaksi.add(
+      Transaksi(
+        id: tx.id,
+        nominal: tx.nominal,
+        catatan: mainCatatan,
+        tipe: mainTipe,
+        kategori: mainKategori,
+        akun: tx.akun,
+        tanggal: tx.tanggal,
+      ),
+    );
   }
 }
 
