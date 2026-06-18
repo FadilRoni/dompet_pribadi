@@ -6,7 +6,6 @@ import 'grafik_screen.dart';
 import 'utang_screen.dart';
 import 'asset_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -18,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _nominalController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
   final label = '';
+  bool isHideSaldo = true;
 
   String _pilihanTipe = "Pengeluaran";
   String _pilihanKategori = "";
@@ -31,7 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Filter Tanggal Default: Awal dan Akhir Bulan Saat Ini
   DateTime rangeMulai = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  DateTime rangeSelesai = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
+  DateTime rangeSelesai = DateTime(
+    DateTime.now().year,
+    DateTime.now().month + 1,
+    0,
+  );
 
   String _formatTanggalHeader(DateTime date) {
     const bulan = [
@@ -46,7 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       "September",
       "Oktober",
       "November",
-      "Desember"
+      "Desember",
     ];
     return "${date.day} ${bulan[date.month - 1]} ${date.year}";
   }
@@ -124,7 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text(
                     "${isPengeluaran ? "-" : "+"}Rp ${formatRibuan(item.nominal)}",
                     style: TextStyle(
-                      color: isPengeluaran ? Colors.red[800] : Colors.green[800],
+                      color: isPengeluaran
+                          ? Colors.red[800]
+                          : Colors.green[800],
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -135,7 +141,11 @@ class _HomeScreenState extends State<HomeScreen> {
               const Divider(),
               const SizedBox(height: 12),
               // Detail rows
-              _detailRow(Icons.account_balance_wallet_outlined, "Akun", item.akun),
+              _detailRow(
+                Icons.account_balance_wallet_outlined,
+                "Akun",
+                item.akun,
+              ),
               if (item.catatan.isNotEmpty)
                 _detailRow(Icons.notes_outlined, "Catatan", item.catatan),
               _detailRow(
@@ -150,7 +160,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      label: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      label: const Text(
+                        "Hapus",
+                        style: TextStyle(color: Colors.red),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -202,10 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(width: 10),
           Text(
             "$label: ",
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
           Expanded(
             child: Text(
@@ -332,8 +342,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (picked != null) {
                                 setDialogState(() {
                                   editTanggal = DateTime(
-                                    picked.year, picked.month, picked.day,
-                                    editTanggal.hour, editTanggal.minute,
+                                    picked.year,
+                                    picked.month,
+                                    picked.day,
+                                    editTanggal.hour,
+                                    editTanggal.minute,
                                   );
                                 });
                               }
@@ -356,8 +369,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (picked != null) {
                                 setDialogState(() {
                                   editTanggal = DateTime(
-                                    editTanggal.year, editTanggal.month, editTanggal.day,
-                                    picked.hour, picked.minute,
+                                    editTanggal.year,
+                                    editTanggal.month,
+                                    editTanggal.day,
+                                    picked.hour,
+                                    picked.minute,
                                   );
                                 });
                               }
@@ -515,14 +531,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               .where((k) => k.tipe == _pilihanTipe)
                               .map((k) => k.nama)
                               .toList();
-                          _pilihanKategori = newList.isNotEmpty ? newList.first : "";
+                          _pilihanKategori = newList.isNotEmpty
+                              ? newList.first
+                              : "";
                         });
                       },
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       key: ValueKey(_pilihanTipe),
-                      initialValue: kategoriDialog.isNotEmpty ? _pilihanKategori : null,
+                      initialValue: kategoriDialog.isNotEmpty
+                          ? _pilihanKategori
+                          : null,
                       decoration: const InputDecoration(
                         labelText: "Kategori",
                         border: OutlineInputBorder(),
@@ -568,8 +588,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (picked != null) {
                                 setDialogState(() {
                                   pilihanTanggal = DateTime(
-                                    picked.year, picked.month, picked.day,
-                                    pilihanTanggal.hour, pilihanTanggal.minute,
+                                    picked.year,
+                                    picked.month,
+                                    picked.day,
+                                    pilihanTanggal.hour,
+                                    pilihanTanggal.minute,
                                   );
                                 });
                               }
@@ -592,9 +615,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               if (picked != null) {
                                 setDialogState(() {
                                   pilihanTanggal = DateTime(
-                                    pilihanTanggal.year, pilihanTanggal.month,
+                                    pilihanTanggal.year,
+                                    pilihanTanggal.month,
                                     pilihanTanggal.day,
-                                    picked.hour, picked.minute,
+                                    picked.hour,
+                                    picked.minute,
                                   );
                                 });
                               }
@@ -954,7 +979,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 5),
                     DropdownButton<String>(
                       value: _filterTipe,
-                      items: ["Semua", "Pengeluaran", "Pemasukan"].map((String val) {
+                      items: ["Semua", "Pengeluaran", "Pemasukan"].map((
+                        String val,
+                      ) {
                         return DropdownMenuItem<String>(
                           value: val,
                           child: Text(val),
@@ -1032,8 +1059,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             SizedBox(height: 10),
             // RINGKASAN SALDO, PEMASUKAN, & PENGELUARAN
+            // RINGKASAN SALDO, PEMASUKAN, & PENGELUARAN
             Card(
-              margin: EdgeInsets.symmetric(vertical: 10),
+              margin: const EdgeInsets.symmetric(vertical: 10),
               elevation: 4,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -1044,17 +1072,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Column(
                           children: [
-                            Text(
+                            const Text(
                               "Pemasukan",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              "Rp ${formatRibuan(totalPemasukan)}",
-                              style: TextStyle(
+                              isHideSaldo
+                                  ? "Rp ••••••••"
+                                  : "Rp ${formatRibuan(totalPemasukan)}",
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.greenAccent,
@@ -1069,17 +1099,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         Column(
                           children: [
-                            Text(
+                            const Text(
                               "Pengeluaran",
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
-                              "Rp ${formatRibuan(totalPengeluaran)}",
-                              style: TextStyle(
+                              isHideSaldo
+                                  ? "Rp ••••••••"
+                                  : "Rp ${formatRibuan(totalPengeluaran)}",
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.redAccent,
@@ -1089,21 +1121,44 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ],
                     ),
-                    Divider(height: 20),
-                    Text(
-                      "Saldo Bersih: Rp ${formatRibuan(totalSaldo)}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: totalSaldo >= 0
-                            ? Colors.greenAccent
-                            : Colors.redAccent,
-                      ),
+                    const Divider(height: 20),
+
+                    // Saldo Bersih + Tombol Mata
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              isHideSaldo = !isHideSaldo;
+                            });
+                          },
+                          icon: Icon(
+                            isHideSaldo
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                            size: 20,
+                          ),
+                        ),
+                        Text(
+                          isHideSaldo
+                              ? "Saldo Bersih: Rp ••••••••"
+                              : "Saldo Bersih: Rp ${formatRibuan(totalSaldo)}",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: totalSaldo >= 0
+                                ? Colors.greenAccent
+                                : Colors.redAccent,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 10),
             SizedBox(height: 10),
             // DAFTAR RIWAYAT DENGAN GRUP TANGGAL
             ...transaksiPerTanggal.entries.map((entry) {
@@ -1113,7 +1168,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0),
+                    padding: const EdgeInsets.only(
+                      top: 16.0,
+                      bottom: 8.0,
+                      left: 8.0,
+                    ),
                     child: Text(
                       tanggalHeader,
                       style: TextStyle(
@@ -1135,8 +1194,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     final isPengeluaran = item.tipe == "Pengeluaran";
                     final color = isPengeluaran ? Colors.red : Colors.green;
                     return ListTile(
-                      contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-                      onTap: () => _showDetailTransaksi(item, categoryDetail.ikon),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                        vertical: 4.0,
+                      ),
+                      onTap: () =>
+                          _showDetailTransaksi(item, categoryDetail.ikon),
                       leading: Container(
                         width: 48,
                         height: 48,
@@ -1161,10 +1224,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         item.catatan.isNotEmpty
                             ? "${item.catatan} • ${item.akun}"
                             : item.akun,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
                       ),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
