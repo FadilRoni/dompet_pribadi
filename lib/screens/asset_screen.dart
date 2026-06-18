@@ -44,7 +44,7 @@ Color _cryptoColor(String symbol) {
 
 class LivePrice {
   final double last;
-  final double buy;  // Harga beli di market (ask)
+  final double buy; // Harga beli di market (ask)
   final double sell; // Harga jual di market (bid)
 
   LivePrice({required this.last, required this.buy, required this.sell});
@@ -92,12 +92,15 @@ class _AssetScreenState extends State<AssetScreen> {
           final key = '${crypto.symbol.toLowerCase()}_idr';
           if (tickers.containsKey(key)) {
             final ticker = tickers[key] as Map<String, dynamic>;
-            final lastVal = double.tryParse(ticker['last']?.toString() ?? '') ?? 0.0;
+            final lastVal =
+                double.tryParse(ticker['last']?.toString() ?? '') ?? 0.0;
             // Indodax 'buy' = bid/harga jual tertinggi dari buyer
             // Indodax 'sell' = ask/harga beli terendah dari seller
-            final buyVal = double.tryParse(ticker['buy']?.toString() ?? '') ?? lastVal;
-            final sellVal = double.tryParse(ticker['sell']?.toString() ?? '') ?? lastVal;
-            
+            final buyVal =
+                double.tryParse(ticker['buy']?.toString() ?? '') ?? lastVal;
+            final sellVal =
+                double.tryParse(ticker['sell']?.toString() ?? '') ?? lastVal;
+
             harga[crypto.symbol] = LivePrice(
               last: lastVal,
               buy: sellVal, // Harga untuk beli (dari orderbook sell)
@@ -137,7 +140,10 @@ class _AssetScreenState extends State<AssetScreen> {
   String _fmtQty(double v) {
     if (v == v.truncateToDouble()) return v.toStringAsFixed(0);
     // Hapus trailing zero
-    return v.toString().replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+    return v
+        .toString()
+        .replaceAll(RegExp(r'0+$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
   }
 
   double _nilaiSekarang(Asset a) {
@@ -176,191 +182,217 @@ class _AssetScreenState extends State<AssetScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) {
-        return StatefulBuilder(builder: (ctx, setBS) {
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(ctx).viewInsets.bottom,
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
+        return StatefulBuilder(
+          builder: (ctx, setBS) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(ctx).viewInsets.bottom,
               ),
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Handle bar
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[400],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(28),
                   ),
-                  const SizedBox(height: 18),
-                  Text(
-                    existing == null ? 'Tambah Aset Kripto' : 'Edit Aset',
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Pilih Kripto
-                  DropdownButtonFormField<CryptoMaster>(
-                    initialValue: selectedCrypto,
-                    decoration: InputDecoration(
-                      labelText: 'Pilih Kripto',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: _cryptoColor(selectedCrypto.symbol),
-                        child: Text(
-                          selectedCrypto.symbol[0],
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold),
+                ),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Handle bar
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[400],
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    items: cryptoList
-                        .map((c) => DropdownMenuItem(
+                    const SizedBox(height: 18),
+                    Text(
+                      existing == null ? 'Tambah Aset Kripto' : 'Edit Aset',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Pilih Kripto
+                    DropdownButtonFormField<CryptoMaster>(
+                      initialValue: selectedCrypto,
+                      decoration: InputDecoration(
+                        labelText: 'Pilih Kripto',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: CircleAvatar(
+                          radius: 14,
+                          backgroundColor: _cryptoColor(selectedCrypto.symbol),
+                          child: Text(
+                            selectedCrypto.symbol[0],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      items: cryptoList
+                          .map(
+                            (c) => DropdownMenuItem(
                               value: c,
                               child: Row(
                                 children: [
                                   CircleAvatar(
                                     radius: 12,
                                     backgroundColor: _cryptoColor(c.symbol),
-                                    child: Text(c.symbol[0],
-                                        style: const TextStyle(
-                                            color: Colors.white, fontSize: 10)),
+                                    child: Text(
+                                      c.symbol[0],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 10),
                                   Text('${c.symbol} - ${c.name}'),
                                 ],
                               ),
-                            ))
-                        .toList(),
-                    onChanged: existing != null
-                        ? null // tidak bisa ganti symbol saat edit
-                        : (val) {
-                            if (val != null) setBS(() => selectedCrypto = val);
-                          },
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Jumlah kepemilikan
-                  TextField(
-                    controller: qtyCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*')),
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'Jumlah (Qty)',
-                      hintText: 'cth: 0.005',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      prefixIcon: const Icon(Icons.currency_bitcoin),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: existing != null
+                          ? null // tidak bisa ganti symbol saat edit
+                          : (val) {
+                              if (val != null)
+                                setBS(() => selectedCrypto = val);
+                            },
                     ),
-                  ),
-                  const SizedBox(height: 14),
+                    const SizedBox(height: 14),
 
-                  // Harga beli rata-rata
-                  TextField(
-                    controller: hargaCtrl,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
-                    decoration: InputDecoration(
-                      labelText: 'Harga Beli Rata-rata (IDR)',
-                      hintText: 'cth: 1500000000',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      prefixText: 'Rp ',
+                    // Jumlah kepemilikan
+                    TextField(
+                      controller: qtyCtrl,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Jumlah (Qty)',
+                        hintText: 'cth: 0.005',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixIcon: const Icon(Icons.currency_bitcoin),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 14),
 
-                  // Tombol Simpan
-                  ElevatedButton.icon(
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text(existing == null ? 'Tambah Aset' : 'Simpan'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6C63FF),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                    // Harga beli rata-rata
+                    TextField(
+                      controller: hargaCtrl,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: 'Harga Beli Rata-rata (IDR)',
+                        hintText: 'cth: 1500000000',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        prefixText: 'Rp ',
+                      ),
                     ),
-                    onPressed: () {
-                      final qty = double.tryParse(qtyCtrl.text);
-                      final harga = double.tryParse(hargaCtrl.text);
-                      if (qty == null || qty <= 0 || harga == null || harga < 0) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content:
-                                  Text('Isi jumlah dan harga beli dengan benar.')),
-                        );
-                        return;
-                      }
+                    const SizedBox(height: 24),
 
-                      setState(() {
-                        if (existing == null) {
-                          // Cek apakah sudah ada
-                          final idx = daftarAsset.indexWhere(
-                              (a) => a.symbol == selectedCrypto.symbol);
-                          if (idx >= 0) {
-                            // Gabungkan (weighted average)
-                            final old = daftarAsset[idx];
-                            final totalQty = old.quantity + qty;
-                            final avgPrice = ((old.quantity * old.buyPrice) +
-                                    (qty * harga)) /
-                                totalQty;
-                            daftarAsset[idx] = Asset(
-                              id: old.id,
-                              symbol: old.symbol,
-                              name: old.name,
-                              quantity: totalQty,
-                              buyPrice: avgPrice,
-                            );
-                          } else {
-                            daftarAsset.add(Asset(
-                              id: DateTime.now().millisecondsSinceEpoch
-                                  .toString(),
-                              symbol: selectedCrypto.symbol,
-                              name: selectedCrypto.name,
-                              quantity: qty,
-                              buyPrice: harga,
-                            ));
-                          }
-                        } else {
-                          // Edit existing
-                          existing.quantity = qty;
-                          existing.buyPrice = harga;
+                    // Tombol Simpan
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.save_outlined),
+                      label: Text(existing == null ? 'Tambah Aset' : 'Simpan'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF6C63FF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        final qty = double.tryParse(qtyCtrl.text);
+                        final harga = double.tryParse(hargaCtrl.text);
+                        if (qty == null ||
+                            qty <= 0 ||
+                            harga == null ||
+                            harga < 0) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Isi jumlah dan harga beli dengan benar.',
+                              ),
+                            ),
+                          );
+                          return;
                         }
-                        saveData();
-                      });
-                      Navigator.pop(ctx);
-                      // Refresh harga setelah tambah
-                      if (existing == null) _fetchHarga();
-                    },
-                  ),
-                ],
+
+                        setState(() {
+                          if (existing == null) {
+                            // Cek apakah sudah ada
+                            final idx = daftarAsset.indexWhere(
+                              (a) => a.symbol == selectedCrypto.symbol,
+                            );
+                            if (idx >= 0) {
+                              // Gabungkan (weighted average)
+                              final old = daftarAsset[idx];
+                              final totalQty = old.quantity + qty;
+                              final avgPrice =
+                                  ((old.quantity * old.buyPrice) +
+                                      (qty * harga)) /
+                                  totalQty;
+                              daftarAsset[idx] = Asset(
+                                id: old.id,
+                                symbol: old.symbol,
+                                name: old.name,
+                                quantity: totalQty,
+                                buyPrice: avgPrice,
+                              );
+                            } else {
+                              daftarAsset.add(
+                                Asset(
+                                  id: DateTime.now().millisecondsSinceEpoch
+                                      .toString(),
+                                  symbol: selectedCrypto.symbol,
+                                  name: selectedCrypto.name,
+                                  quantity: qty,
+                                  buyPrice: harga,
+                                ),
+                              );
+                            }
+                          } else {
+                            // Edit existing
+                            existing.quantity = qty;
+                            existing.buyPrice = harga;
+                          }
+                          saveData();
+                        });
+                        Navigator.pop(ctx);
+                        // Refresh harga setelah tambah
+                        if (existing == null) _fetchHarga();
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -371,7 +403,8 @@ class _AssetScreenState extends State<AssetScreen> {
       builder: (ctx) => AlertDialog(
         title: Text('Hapus ${a.symbol}?'),
         content: Text(
-            'Aset ${a.name} (${_fmtQty(a.quantity)} ${a.symbol}) akan dihapus dari portofolio.'),
+          'Aset ${a.name} (${_fmtQty(a.quantity)} ${a.symbol}) akan dihapus dari portofolio.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -379,7 +412,9 @@ class _AssetScreenState extends State<AssetScreen> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, foregroundColor: Colors.white),
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () {
               setState(() {
                 daftarAsset.removeWhere((x) => x.id == a.id);
@@ -419,7 +454,13 @@ class _AssetScreenState extends State<AssetScreen> {
             // ── Header Portofolio ──
             SliverToBoxAdapter(
               child: _buildHeader(
-                  totalNilai, totalModal, totalPL, totalPLPct, isProfit, isDark),
+                totalNilai,
+                totalModal,
+                totalPL,
+                totalPLPct,
+                isProfit,
+                isDark,
+              ),
             ),
 
             // ── Error / Loading indicator ──
@@ -432,21 +473,31 @@ class _AssetScreenState extends State<AssetScreen> {
                     decoration: BoxDecoration(
                       color: Colors.orange.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.4)),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.4),
+                      ),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.wifi_off, color: Colors.orange, size: 18),
+                        const Icon(
+                          Icons.wifi_off,
+                          color: Colors.orange,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(_errorMsg!,
-                              style: const TextStyle(
-                                  color: Colors.orange, fontSize: 13)),
+                          child: Text(
+                            _errorMsg!,
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                         TextButton(
                           onPressed: _fetchHarga,
                           child: const Text('Coba Lagi'),
-                        )
+                        ),
                       ],
                     ),
                   ),
@@ -456,27 +507,33 @@ class _AssetScreenState extends State<AssetScreen> {
             // ── Judul List ──
             SliverToBoxAdapter(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
-                    const Text('Aset Saya',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Aset Saya',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const Spacer(),
                     if (_isLoading)
                       const SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF6C63FF)),
+                          strokeWidth: 2,
+                          color: Color(0xFF6C63FF),
+                        ),
                       ),
                     if (_lastUpdated != null && !_isLoading)
                       Text(
                         'Update ${_lastUpdated!.hour.toString().padLeft(2, '0')}:${_lastUpdated!.minute.toString().padLeft(2, '0')}',
-                        style:
-                            TextStyle(fontSize: 12, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                       ),
                   ],
                 ),
@@ -500,19 +557,24 @@ class _AssetScreenState extends State<AssetScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton(
         onPressed: () => _showAssetDialog(),
         backgroundColor: const Color(0xFF6C63FF),
         foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Tambah Aset'),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
   // ── Header Widget ────────────────────────────────────────────────────────
-  Widget _buildHeader(double totalNilai, double totalModal, double totalPL,
-      double totalPLPct, bool isProfit, bool isDark) {
+  Widget _buildHeader(
+    double totalNilai,
+    double totalModal,
+    double totalPL,
+    double totalPLPct,
+    bool isProfit,
+    bool isDark,
+  ) {
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -534,24 +596,26 @@ class _AssetScreenState extends State<AssetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Total Portofolio Kripto',
-              style: TextStyle(color: Colors.white70, fontSize: 13)),
+          const Text(
+            'Total Portofolio Kripto',
+            style: TextStyle(color: Colors.white70, fontSize: 13),
+          ),
           const SizedBox(height: 6),
           Text(
             'Rp ${_fmt(totalNilai)}',
             style: const TextStyle(
-                color: Colors.white,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -0.5),
+              color: Colors.white,
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.5,
+            ),
           ),
           const SizedBox(height: 14),
           const Divider(color: Colors.white24, height: 1),
           const SizedBox(height: 14),
           Row(
             children: [
-              _headerStat('Modal', 'Rp ${_fmt(totalModal)}',
-                  Colors.white70),
+              _headerStat('Modal', 'Rp ${_fmt(totalModal)}', Colors.white70),
               const SizedBox(width: 16),
               _headerStat(
                 'P&L',
@@ -576,15 +640,19 @@ class _AssetScreenState extends State<AssetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style:
-                  const TextStyle(color: Colors.white54, fontSize: 11)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white54, fontSize: 11),
+          ),
           const SizedBox(height: 3),
-          Text(value,
-              style: TextStyle(
-                  color: color,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            value,
+            style: TextStyle(
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -617,9 +685,7 @@ class _AssetScreenState extends State<AssetScreen> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white,
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isDark
@@ -633,7 +699,7 @@ class _AssetScreenState extends State<AssetScreen> {
                       color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ],
           ),
           padding: const EdgeInsets.all(16),
@@ -669,13 +735,20 @@ class _AssetScreenState extends State<AssetScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(a.symbol,
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15)),
-                        Text(a.name,
-                            style: TextStyle(
-                                color: Colors.grey[500], fontSize: 12)),
+                        Text(
+                          a.symbol,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          a.name,
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -685,17 +758,19 @@ class _AssetScreenState extends State<AssetScreen> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        hargaSekarang == null
-                            ? '—'
-                            : 'Rp ${_fmt(nilai)}',
+                        hargaSekarang == null ? '—' : 'Rp ${_fmt(nilai)}',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                       if (hargaSekarang != null)
                         Container(
                           margin: const EdgeInsets.only(top: 3),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: isProfit
                                 ? Colors.green.withValues(alpha: 0.12)
@@ -722,8 +797,7 @@ class _AssetScreenState extends State<AssetScreen> {
               // Detail bawah
               Row(
                 children: [
-                  _detailItem(
-                      'Qty', _fmtQty(a.quantity), Colors.grey[600]!),
+                  _detailItem('Qty', _fmtQty(a.quantity), Colors.grey[600]!),
                   _detailItem(
                     'Harga Beli',
                     _hargaLive[a.symbol] == null
@@ -744,7 +818,10 @@ class _AssetScreenState extends State<AssetScreen> {
               Row(
                 children: [
                   _detailItem(
-                      'Rata-rata Beli', 'Rp ${_fmt(a.buyPrice)}', Colors.grey[600]!),
+                    'Rata-rata Beli',
+                    'Rp ${_fmt(a.buyPrice)}',
+                    Colors.grey[600]!,
+                  ),
                   _detailItem(
                     'Harga Kini',
                     hargaSekarang == null
@@ -775,14 +852,16 @@ class _AssetScreenState extends State<AssetScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: TextStyle(color: Colors.grey[500], fontSize: 11)),
+          Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
           const SizedBox(height: 2),
-          Text(value,
-              style: TextStyle(
-                  color: valueColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -803,13 +882,17 @@ class _AssetScreenState extends State<AssetScreen> {
                 color: const Color(0xFF6C63FF).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.currency_bitcoin,
-                  size: 40, color: Color(0xFF6C63FF)),
+              child: const Icon(
+                Icons.currency_bitcoin,
+                size: 40,
+                color: Color(0xFF6C63FF),
+              ),
             ),
             const SizedBox(height: 20),
-            const Text('Belum Ada Aset',
-                style:
-                    TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Belum Ada Aset',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text(
               'Ketuk tombol "Tambah Aset" untuk mulai\nmencatat portofolio kripto Anda.',
