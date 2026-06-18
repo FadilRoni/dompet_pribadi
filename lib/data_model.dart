@@ -46,6 +46,7 @@ List<IconData> daftarPilihanIkon = [
   Icons.home, // Rumah
   Icons.bolt, // Listrik/Listrik
   Icons.medical_services, // Kesehatan
+  Icons.smoking_rooms, // Rokok/Vape
 ];
 
 // DATA GLOBAL (akan diisi oleh database Hive saat aplikasi dimulai)

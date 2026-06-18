@@ -14,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _nominalController = TextEditingController();
   final TextEditingController _catatanController = TextEditingController();
+  final label = '';
 
   String _pilihanTipe = "Pengeluaran";
   String _pilihanKategori = "";
@@ -21,12 +22,199 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _filterAkun = "Semua";
   String _filterKategori = "Semua";
+  String _filterTipe = "Semua";
   // Melacak tab aktif di KategoriScreen agar FAB bisa auto-select tipe
   String _kategoriTabTipe = "Pengeluaran";
 
-  // Filter Tanggal Default: Bulan Juni 2026 (Menyesuaikan waktu saat ini)
-  DateTime rangeMulai = DateTime(2026, 6, 1);
-  DateTime rangeSelesai = DateTime(2026, 6, 30);
+  // Filter Tanggal Default: Awal dan Akhir Bulan Saat Ini
+  DateTime rangeMulai = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime rangeSelesai = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
+
+  String _formatTanggalHeader(DateTime date) {
+    const bulan = [
+      "Januari",
+      "Februari",
+      "Maret",
+      "April",
+      "Mei",
+      "Juni",
+      "Juli",
+      "Agustus",
+      "September",
+      "Oktober",
+      "November",
+      "Desember"
+    ];
+    return "${date.day} ${bulan[date.month - 1]} ${date.year}";
+  }
+
+  String _formatWaktu(DateTime date) {
+    String hourStr = date.hour < 10 ? "0${date.hour}" : "${date.hour}";
+    String minuteStr = date.minute < 10 ? "0${date.minute}" : "${date.minute}";
+    return "$hourStr:$minuteStr";
+  }
+
+  void _showDetailTransaksi(Transaksi item, IconData categoryIcon) {
+    final isPengeluaran = item.tipe == "Pengeluaran";
+    final color = isPengeluaran ? Colors.red : Colors.green;
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Icon + nominal
+              Row(
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Icon(categoryIcon, color: color, size: 28),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.kategori,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item.tipe,
+                          style: TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    "${isPengeluaran ? "-" : "+"}Rp ${formatRibuan(item.nominal)}",
+                    style: TextStyle(
+                      color: isPengeluaran ? Colors.red[800] : Colors.green[800],
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+              // Detail rows
+              _detailRow(Icons.account_balance_wallet_outlined, "Akun", item.akun),
+              if (item.catatan.isNotEmpty)
+                _detailRow(Icons.notes_outlined, "Catatan", item.catatan),
+              _detailRow(
+                Icons.calendar_today_outlined,
+                "Tanggal",
+                "${_formatTanggalHeader(item.tanggal)}, ${_formatWaktu(item.tanggal)}",
+              ),
+              const SizedBox(height: 24),
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      label: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _hapusTransaksi(item);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text("Edit"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _editTransaksi(item);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: Colors.grey[600]),
+          const SizedBox(width: 10),
+          Text(
+            "$label: ",
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 14,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _editTransaksi(Transaksi item) {
     showDialog(
       context: context,
@@ -34,6 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
         String editTipe = item.tipe;
         String editKategori = item.kategori;
         String editAkun = item.akun;
+        DateTime editTanggal = item.tanggal;
         final TextEditingController nominalEditController =
             TextEditingController(text: formatRibuan(item.nominal));
         final TextEditingController catatanEditController =
@@ -51,6 +240,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 !kategoriAktif.contains(editKategori)) {
               editKategori = kategoriAktif.first;
             }
+
+            String tanggalStr =
+                "${editTanggal.day.toString().padLeft(2, '0')}/"
+                "${editTanggal.month.toString().padLeft(2, '0')}/"
+                "${editTanggal.year}";
+            String jamStr =
+                "${editTanggal.hour.toString().padLeft(2, '0')}:"
+                "${editTanggal.minute.toString().padLeft(2, '0')}";
 
             return AlertDialog(
               title: Text("Edit Transaksi"),
@@ -114,6 +311,58 @@ class _HomeScreenState extends State<HomeScreen> {
                         });
                       },
                     ),
+                    const SizedBox(height: 12),
+                    // Picker Tanggal & Jam
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(tanggalStr),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: editTanggal,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2030),
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  editTanggal = DateTime(
+                                    picked.year, picked.month, picked.day,
+                                    editTanggal.hour, editTanggal.minute,
+                                  );
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.access_time, size: 16),
+                            label: Text(jamStr),
+                            onPressed: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay(
+                                  hour: editTanggal.hour,
+                                  minute: editTanggal.minute,
+                                ),
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  editTanggal = DateTime(
+                                    editTanggal.year, editTanggal.month, editTanggal.day,
+                                    picked.hour, picked.minute,
+                                  );
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -135,6 +384,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         item.tipe = editTipe;
                         item.kategori = editKategori;
                         item.akun = editAkun;
+                        item.tanggal = editTanggal;
                       });
                       saveData();
                       Navigator.pop(context);
@@ -187,6 +437,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _tambahTransaksi() {
+    DateTime pilihanTanggal = DateTime.now();
+
     showDialog(
       context: context,
       builder: (context) {
@@ -201,6 +453,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 !kategoriDialog.contains(_pilihanKategori)) {
               _pilihanKategori = kategoriDialog.first;
             }
+
+            String tanggalStr =
+                "${pilihanTanggal.day.toString().padLeft(2, '0')}/"
+                "${pilihanTanggal.month.toString().padLeft(2, '0')}/"
+                "${pilihanTanggal.year}";
+            String jamStr =
+                "${pilihanTanggal.hour.toString().padLeft(2, '0')}:"
+                "${pilihanTanggal.minute.toString().padLeft(2, '0')}";
 
             return AlertDialog(
               title: const Row(
@@ -241,33 +501,33 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: ["Pengeluaran", "Pemasukan"]
-                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
                           .toList(),
                       onChanged: (val) {
                         setDialogState(() {
                           _pilihanTipe = val!;
-                          // Reset kategori saat tipe berubah
                           final newList = masterKategori
                               .where((k) => k.tipe == _pilihanTipe)
                               .map((k) => k.nama)
                               .toList();
-                          _pilihanKategori =
-                              newList.isNotEmpty ? newList.first : "";
+                          _pilihanKategori = newList.isNotEmpty ? newList.first : "";
                         });
                       },
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       key: ValueKey(_pilihanTipe),
-                      initialValue: kategoriDialog.isNotEmpty
-                          ? _pilihanKategori
-                          : null,
+                      initialValue: kategoriDialog.isNotEmpty ? _pilihanKategori : null,
                       decoration: const InputDecoration(
                         labelText: "Kategori",
                         border: OutlineInputBorder(),
                       ),
                       items: kategoriDialog
-                          .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                          .map(
+                            (k) => DropdownMenuItem(value: k, child: Text(k)),
+                          )
                           .toList(),
                       onChanged: (val) =>
                           setDialogState(() => _pilihanKategori = val!),
@@ -280,10 +540,65 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: masterAkun
-                          .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                          .map(
+                            (a) => DropdownMenuItem(value: a, child: Text(a)),
+                          )
                           .toList(),
                       onChanged: (val) =>
                           setDialogState(() => _pilihanAkun = val!),
+                    ),
+                    const SizedBox(height: 12),
+                    // Picker Tanggal & Jam
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.calendar_today, size: 16),
+                            label: Text(tanggalStr),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: pilihanTanggal,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2030),
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  pilihanTanggal = DateTime(
+                                    picked.year, picked.month, picked.day,
+                                    pilihanTanggal.hour, pilihanTanggal.minute,
+                                  );
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.access_time, size: 16),
+                            label: Text(jamStr),
+                            onPressed: () async {
+                              final picked = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay(
+                                  hour: pilihanTanggal.hour,
+                                  minute: pilihanTanggal.minute,
+                                ),
+                              );
+                              if (picked != null) {
+                                setDialogState(() {
+                                  pilihanTanggal = DateTime(
+                                    pilihanTanggal.year, pilihanTanggal.month,
+                                    pilihanTanggal.day,
+                                    picked.hour, picked.minute,
+                                  );
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -310,7 +625,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         daftarTransaksi.add(
                           Transaksi(
                             id: DateTime.now().toString(),
-                            nominal: double.tryParse(
+                            nominal:
+                                double.tryParse(
                                   _nominalController.text.replaceAll('.', ''),
                                 ) ??
                                 0,
@@ -318,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             tipe: _pilihanTipe,
                             kategori: _pilihanKategori,
                             akun: _pilihanAkun,
-                            tanggal: DateTime.now(),
+                            tanggal: pilihanTanggal,
                           ),
                         );
                         saveData();
@@ -376,7 +692,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         border: OutlineInputBorder(),
                       ),
                       items: ["Pengeluaran", "Pemasukan"]
-                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
                           .toList(),
                       onChanged: (val) => setDialogState(() => tipe = val!),
                     ),
@@ -419,11 +737,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     if (namaCtrl.text.isNotEmpty) {
                       setState(() {
-                        masterKategori.add(KategoriModel(
-                          nama: namaCtrl.text,
-                          tipe: tipe,
-                          ikon: ikon,
-                        ));
+                        masterKategori.add(
+                          KategoriModel(
+                            nama: namaCtrl.text,
+                            tipe: tipe,
+                            ikon: ikon,
+                          ),
+                        );
                         saveData();
                       });
                       Navigator.pop(context);
@@ -514,12 +834,20 @@ class _HomeScreenState extends State<HomeScreen> {
       _pilihanAkun = masterAkun.first;
     }
 
-    // Proteksi filter kategori jika kategori dihapus dari masterKategori
-    final List<String> listKategoriUnik = masterKategori
-        .map((k) => k.nama)
-        .toSet()
-        .toList();
-    if (!["Semua", ...listKategoriUnik].contains(_filterKategori)) {
+    // Dinamis: Kategori yang ditampilkan menyesuaikan tipe yang dipilih
+    List<String> listKategoriFilter = [];
+    if (_filterTipe == "Semua") {
+      listKategoriFilter = masterKategori.map((k) => k.nama).toSet().toList();
+    } else {
+      listKategoriFilter = masterKategori
+          .where((k) => k.tipe == _filterTipe)
+          .map((k) => k.nama)
+          .toSet()
+          .toList();
+    }
+
+    // Proteksi filter kategori jika kategori tidak valid/dihapus
+    if (!["Semua", ...listKategoriFilter].contains(_filterKategori)) {
       _filterKategori = "Semua";
     }
 
@@ -528,10 +856,11 @@ class _HomeScreenState extends State<HomeScreen> {
           t.tanggal.isAfter(rangeMulai.subtract(Duration(days: 1))) &&
           t.tanggal.isBefore(rangeSelesai.add(Duration(days: 1)));
 
+      bool masukTipe = _filterTipe == "Semua" || t.tipe == _filterTipe;
       bool masukAkun = _filterAkun == "Semua" || t.akun == _filterAkun;
       bool masukKategori =
           _filterKategori == "Semua" || t.kategori == _filterKategori;
-      bool lolosFilter = masukRange && masukAkun && masukKategori;
+      bool lolosFilter = masukRange && masukTipe && masukAkun && masukKategori;
 
       if (lolosFilter) {
         if (t.tipe == "Pemasukan") totalPemasukan += t.nominal;
@@ -539,6 +868,19 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       return lolosFilter;
     }).toList();
+
+    // Urutkan transaksi berdasarkan tanggal secara descending (terbaru di atas)
+    riwayatTerfilter.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+
+    // Kelompokkan transaksi berdasarkan tanggal untuk tampilan list
+    Map<String, List<Transaksi>> transaksiPerTanggal = {};
+    for (var t in riwayatTerfilter) {
+      String key = _formatTanggalHeader(t.tanggal);
+      if (!transaksiPerTanggal.containsKey(key)) {
+        transaksiPerTanggal[key] = [];
+      }
+      transaksiPerTanggal[key]!.add(t);
+    }
 
     double totalSaldo = totalPemasukan - totalPengeluaran;
 
@@ -591,10 +933,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            // FILTER BY AKUN & KATEGORI
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // FILTER UTAMA (Tipe, Akun, Kategori)
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
+                // Filter Tipe
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Tipe: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(width: 5),
+                    DropdownButton<String>(
+                      value: _filterTipe,
+                      items: ["Semua", "Pengeluaran", "Pemasukan"].map((String val) {
+                        return DropdownMenuItem<String>(
+                          value: val,
+                          child: Text(val),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _filterTipe = val!;
+                          // Reset filter kategori jika tidak valid dengan tipe terpilih
+                          if (_filterTipe != "Semua") {
+                            final validCats = masterKategori
+                                .where((k) => k.tipe == _filterTipe)
+                                .map((k) => k.nama)
+                                .toSet();
+                            if (!validCats.contains(_filterKategori)) {
+                              _filterKategori = "Semua";
+                            }
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 // Filter Akun
                 Row(
                   mainAxisSize: MainAxisSize.min,
@@ -631,7 +1011,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 5),
                     DropdownButton<String>(
                       value: _filterKategori,
-                      items: ["Semua", ...listKategoriUnik].map((String val) {
+                      items: ["Semua", ...listKategoriFilter].map((String val) {
                         return DropdownMenuItem<String>(
                           value: val,
                           child: Text(val),
@@ -722,49 +1102,96 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             SizedBox(height: 10),
-            // DAFTAR RIWAYAT
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: riwayatTerfilter.length,
-              itemBuilder: (c, i) {
-                final item = riwayatTerfilter[i];
-                return ListTile(
-                  title: Text("${item.catatan} (${item.kategori})"),
-                  subtitle: Text(
-                    "Akun: ${item.akun} | ${item.tanggal.day}/${item.tanggal.month}",
+            // DAFTAR RIWAYAT DENGAN GRUP TANGGAL
+            ...transaksiPerTanggal.entries.map((entry) {
+              String tanggalHeader = entry.key;
+              List<Transaksi> listTransaksi = entry.value;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0, bottom: 8.0, left: 8.0),
+                    child: Text(
+                      tanggalHeader,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
                   ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        "${item.tipe == "Pengeluaran" ? "-" : "+"} Rp ${formatRibuan(item.nominal)}",
-                        style: TextStyle(
-                          color: item.tipe == "Pengeluaran"
-                              ? Colors.red
-                              : Colors.green,
-                          fontWeight: FontWeight.bold,
+                  ...listTransaksi.map((item) {
+                    final categoryDetail = masterKategori.firstWhere(
+                      (k) => k.nama == item.kategori,
+                      orElse: () => KategoriModel(
+                        nama: item.kategori,
+                        tipe: item.tipe,
+                        ikon: Icons.category,
+                      ),
+                    );
+                    final isPengeluaran = item.tipe == "Pengeluaran";
+                    final color = isPengeluaran ? Colors.red : Colors.green;
+                    return ListTile(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                      onTap: () => _showDetailTransaksi(item, categoryDetail.ikon),
+                      leading: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(
+                          categoryDetail.ikon,
+                          color: color,
+                          size: 24,
                         ),
                       ),
-                      SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(Icons.edit, color: Colors.blue, size: 20),
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                        onPressed: () => _editTransaksi(item),
+                      title: Text(
+                        item.kategori,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
-                      SizedBox(width: 8),
-                      IconButton(
-                        icon: Icon(Icons.delete, color: Colors.red, size: 20),
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(),
-                        onPressed: () => _hapusTransaksi(item),
+                      subtitle: Text(
+                        item.catatan.isNotEmpty
+                            ? "${item.catatan} • ${item.akun}"
+                            : item.akun,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
+                        ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "${isPengeluaran ? "-Rp. " : "+Rp. "}${formatRibuan(item.nominal)}",
+                            style: TextStyle(
+                              color: isPengeluaran
+                                  ? Colors.red[800]
+                                  : Colors.green[800],
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            _formatWaktu(item.tanggal),
+                            style: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              );
+            }),
           ],
         ),
       );
@@ -871,10 +1298,11 @@ class _HomeScreenState extends State<HomeScreen> {
             : null,
       ),
       body: activeBody,
-      floatingActionButton: (_currentIndex == 0 ||
-              _currentIndex == 2 ||
-              _currentIndex == 3)
-          ? FloatingActionButton.extended(
+      floatingActionButton:
+          (_currentIndex == 0 || _currentIndex == 2 || _currentIndex == 3)
+          ? FloatingActionButton(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
               onPressed: () {
                 if (_currentIndex == 0) {
                   _tambahTransaksi();
@@ -884,16 +1312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _tambahAkunDialog();
                 }
               },
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: Text(
-                _currentIndex == 0
-                    ? "Transaksi"
-                    : _currentIndex == 2
-                        ? "Kategori"
-                        : "Akun",
-              ),
+              child: const Icon(Icons.add),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,

@@ -12,6 +12,7 @@ String getNamaIkon(IconData ikon) {
   if (ikon == Icons.home) return "Kebutuhan Rumah";
   if (ikon == Icons.bolt) return "Listrik / Utilitas";
   if (ikon == Icons.medical_services) return "Kesehatan / Medis";
+  if (ikon == Icons.smoking_rooms) return "Rokok / Vape";
   return "Lainnya";
 }
 
@@ -211,6 +212,140 @@ class _KategoriScreenState extends State<KategoriScreen>
     );
   }
 
+  /// Menampilkan detail kategori dalam popup bottom sheet
+  void _showDetailKategori(KategoriModel item, Color bgColor, Color accentColor) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(24, 20, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Icon + nama
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 28,
+                    backgroundColor: bgColor,
+                    child: Icon(item.ikon, color: Colors.white, size: 26),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.nama,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: accentColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            item.tipe,
+                            style: TextStyle(
+                              color: accentColor == Colors.redAccent
+                                  ? Colors.red[700]
+                                  : Colors.green[700],
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.label_outline, size: 18, color: Colors.grey[600]),
+                  const SizedBox(width: 10),
+                  Text("Nama: ", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(item.nama, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(Icons.swap_vert_outlined, size: 18, color: Colors.grey[600]),
+                  const SizedBox(width: 10),
+                  Text("Tipe: ", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(item.tipe, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      label: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _hapusKategori(item);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.edit_outlined),
+                      label: const Text("Edit"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _editKategori(item);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Membangun daftar kategori untuk satu tipe tertentu
   Widget _buildList(String tipe) {
     final list = masterKategori.where((k) => k.tipe == tipe).toList();
@@ -243,33 +378,14 @@ class _KategoriScreenState extends State<KategoriScreen>
         return Card(
           margin: const EdgeInsets.symmetric(vertical: 5),
           child: ListTile(
+            onTap: () => _showDetailKategori(item, bgColor, accentColor),
             leading: CircleAvatar(
               backgroundColor: bgColor,
               child: Icon(item.ikon, color: Colors.white),
             ),
             title: Text(item.nama,
                 style: const TextStyle(fontWeight: FontWeight.w600)),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => _editKategori(item),
-                ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: Icon(accentColor == Colors.redAccent
-                      ? Icons.delete
-                      : Icons.delete,
-                      color: Colors.red, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                  onPressed: () => _hapusKategori(item),
-                ),
-              ],
-            ),
+            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
           ),
         );
       },

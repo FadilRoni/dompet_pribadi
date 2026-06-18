@@ -14,9 +14,9 @@ class _GrafikScreenState extends State<GrafikScreen> {
   String _selectedAkun = "Semua";
   String _selectedKategori = "Semua";
 
-  // Filter Tanggal Default: Bulan Juni 2026 (Menyesuaikan waktu default saat ini)
-  DateTime rangeMulai = DateTime(2026, 6, 1);
-  DateTime rangeSelesai = DateTime(2026, 6, 30);
+  // Filter Tanggal Default: Awal dan Akhir Bulan Saat Ini
+  DateTime rangeMulai = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime rangeSelesai = DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
 
   final List<Color> paletteWarna = [
     const Color(0xFF00ADB5), // Teal
