@@ -180,7 +180,9 @@ Map<String, dynamic> assetToMap(Asset a) {
 
 Asset assetFromMap(Map<dynamic, dynamic> map) {
   return Asset(
-    id: map['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+    id:
+        map['id']?.toString() ??
+        DateTime.now().millisecondsSinceEpoch.toString(),
     symbol: map['symbol']?.toString() ?? '',
     name: map['name']?.toString() ?? '',
     quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
@@ -333,12 +335,13 @@ void loadData() {
   if (savedAkun != null) {
     masterAkun = List<String>.from(savedAkun);
   } else {
-    masterAkun = ["Tunai", "SeaBank", "SuperBank", "Krom Bank"];
+    masterAkun = ["Tunai"];
   }
 
   // Load Akun Utama
   akunUtama = box.get('akunUtama', defaultValue: '');
-  if ((akunUtama.isEmpty || !masterAkun.contains(akunUtama)) && masterAkun.isNotEmpty) {
+  if ((akunUtama.isEmpty || !masterAkun.contains(akunUtama)) &&
+      masterAkun.isNotEmpty) {
     akunUtama = masterAkun.first;
   }
 
@@ -349,7 +352,9 @@ void loadData() {
   final Map<dynamic, dynamic>? savedSaldoAwal = box.get('saldoAwalMap');
   if (savedSaldoAwal != null) {
     saldoAwalMap = Map<String, double>.from(
-      savedSaldoAwal.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
+      savedSaldoAwal.map(
+        (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+      ),
     );
   } else {
     saldoAwalMap = {};
@@ -438,9 +443,7 @@ void loadData() {
   // Load Asset
   final List<dynamic>? savedAsset = box.get('asset');
   if (savedAsset != null) {
-    daftarAsset = savedAsset
-        .map((a) => assetFromMap(a as Map))
-        .toList();
+    daftarAsset = savedAsset.map((a) => assetFromMap(a as Map)).toList();
   } else {
     daftarAsset = [];
   }
@@ -484,7 +487,8 @@ Future<List<File>> getAvailableBackupFiles() async {
         if (entity is File) {
           final name = entity.path.split(Platform.pathSeparator).last;
           if (name == 'dompet_pribadi_backup.json' ||
-              (name.startsWith('dompet_pribadi_backup_') && name.endsWith('.json'))) {
+              (name.startsWith('dompet_pribadi_backup_') &&
+                  name.endsWith('.json'))) {
             backupFiles.add(entity);
           }
         }
@@ -501,7 +505,9 @@ Future<List<File>> getAvailableBackupFiles() async {
         fileWithDate.add({'file': file, 'date': DateTime(1970)});
       }
     }
-    fileWithDate.sort((a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime));
+    fileWithDate.sort(
+      (a, b) => (b['date'] as DateTime).compareTo(a['date'] as DateTime),
+    );
     return fileWithDate.map((item) => item['file'] as File).toList();
   } catch (e) {
     print('Gagal mengambil daftar file backup: $e');
@@ -524,10 +530,11 @@ Future<String?> exportData() async {
     };
 
     final jsonString = jsonEncode(exportMap);
-    
+
     // Penamaan file backup unik dengan tanggal dan waktu
     final now = DateTime.now();
-    final dateStr = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
+    final dateStr =
+        "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
     final filename = "dompet_pribadi_backup_$dateStr.json";
 
     final file = await getBackupFile(filename: filename);
@@ -568,12 +575,17 @@ Future<String> importData({File? selectedFile}) async {
       final List<dynamic> importedTransaksi = importMap['transaksi'];
 
       masterAkun = List<String>.from(importedAkun);
-      akunUtama = importMap['akunUtama'] ?? (masterAkun.isNotEmpty ? masterAkun.first : '');
+      akunUtama =
+          importMap['akunUtama'] ??
+          (masterAkun.isNotEmpty ? masterAkun.first : '');
       limitPengeluaran = (importMap['limitPengeluaran'] ?? 0.0) as double;
-      final Map<dynamic, dynamic>? importedSaldoAwal = importMap['saldoAwalMap'];
+      final Map<dynamic, dynamic>? importedSaldoAwal =
+          importMap['saldoAwalMap'];
       if (importedSaldoAwal != null) {
         saldoAwalMap = Map<String, double>.from(
-          importedSaldoAwal.map((k, v) => MapEntry(k.toString(), (v as num).toDouble())),
+          importedSaldoAwal.map(
+            (k, v) => MapEntry(k.toString(), (v as num).toDouble()),
+          ),
         );
       } else {
         saldoAwalMap = {};
@@ -596,9 +608,7 @@ Future<String> importData({File? selectedFile}) async {
 
       if (importMap.containsKey('asset')) {
         final List<dynamic> importedAsset = importMap['asset'];
-        daftarAsset = importedAsset
-            .map((a) => assetFromMap(a as Map))
-            .toList();
+        daftarAsset = importedAsset.map((a) => assetFromMap(a as Map)).toList();
       } else {
         daftarAsset = [];
       }

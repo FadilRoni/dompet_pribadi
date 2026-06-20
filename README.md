@@ -55,7 +55,13 @@ Aplikasi manajemen keuangan pribadi berbasis Flutter yang dirancang dengan antar
 
 ## 📝 Riwayat Perubahan (Changelog)
 
-### **Versi 2.0.1 (Terbaru)**
+### **Versi 2.0.2 (Terbaru)**
+* **Perhitungan Saldo Akun Real-time**:
+  * Mengintegrasikan kalkulasi saldo secara dinamis yang menggabungkan `Saldo Awal` dengan seluruh riwayat transaksi masuk dan keluar secara real-time.
+* **Migrasi Data Lintas Package ID**:
+  * Memperbarui mekanisme backup/restore JSON untuk mendeteksi berkas cadangan di folder package lama (`com.example.dompet_pribadi`) sebelum folder baru (`com.example.dompet_digital`), memudahkan transisi data pengguna saat memperbarui aplikasi.
+
+### **Versi 2.0.1**
 * **Rebranding Aplikasi**: 
   * Mengubah nama paket dan aplikasi menjadi **Dompet Digital**.
   * Memperbarui konfigurasi Gradle (`applicationId` & `namespace` menjadi `app.bantudigital.dompet_digital`).
