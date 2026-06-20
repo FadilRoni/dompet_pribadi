@@ -2084,15 +2084,15 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         children: [
           KeepAliveWrapper(child: homeBody),
-          const KeepAliveWrapper(child: GrafikScreen()),
+          KeepAliveWrapper(child: GrafikScreen()),
           KeepAliveWrapper(
             child: KategoriScreen(
               onTabChanged: (tipe) => setState(() => _kategoriTabTipe = tipe),
             ),
           ),
-          const KeepAliveWrapper(child: AkunScreen()),
-          const KeepAliveWrapper(child: UtangScreen()),
-          const KeepAliveWrapper(child: AssetScreen()),
+          KeepAliveWrapper(child: AkunScreen()),
+          KeepAliveWrapper(child: UtangScreen()),
+          KeepAliveWrapper(child: AssetScreen()),
         ],
       ),
       floatingActionButton:
