@@ -460,6 +460,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ElevatedButton(
               onPressed: () {
                 setState(() {
+                  // Jika Pindah Dana Pengeluaran → hapus pasangan masuknya
+                  if (item.tipe == 'Pengeluaran' && item.kategori == 'Pindah Dana') {
+                    daftarTransaksi.removeWhere(
+                      (t) => t.id == 'transfer_masuk_${item.id}',
+                    );
+                  }
+                  // Jika Pindah Dana Pemasukan → hapus pasangan keluarnya
+                  if (item.tipe == 'Pemasukan' && item.kategori == 'Pindah Dana') {
+                    daftarTransaksi.removeWhere(
+                      (t) => t.id == 'transfer_keluar_${item.id}',
+                    );
+                  }
                   daftarTransaksi.removeWhere((t) => t.id == item.id);
                 });
                 saveData();
@@ -1524,11 +1536,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _tambahTransaksi() {
     DateTime pilihanTanggal = DateTime.now();
+    String akunTujuan = masterAkun.isNotEmpty ? masterAkun.first : '';
     if (akunUtama.isNotEmpty && masterAkun.contains(akunUtama)) {
       _pilihanAkun = akunUtama;
     } else if (masterAkun.isNotEmpty) {
       _pilihanAkun = masterAkun.first;
     }
+    // akunTujuan default ke akun pertama yang berbeda dari akun sumber
+    final akunSelainUtama = masterAkun.where((a) => a != _pilihanAkun).toList();
+    akunTujuan = akunSelainUtama.isNotEmpty ? akunSelainUtama.first : _pilihanAkun;
 
     showDialog(
       context: context,
@@ -1544,6 +1560,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 !kategoriDialog.contains(_pilihanKategori)) {
               _pilihanKategori = kategoriDialog.first;
             }
+
+            final isPindahDana = _pilihanKategori == 'Pindah Dana';
+            final isPindahDanaKeluar = isPindahDana && _pilihanTipe == 'Pengeluaran';
+            final isPindahDanaMasuk = isPindahDana && _pilihanTipe == 'Pemasukan';
 
             String tanggalStr =
                 "${pilihanTanggal.day.toString().padLeft(2, '0')}/"
@@ -1630,9 +1650,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _pilihanAkun,
-                      decoration: const InputDecoration(
-                        labelText: "Simpan/Ambil Dari (Akun)",
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: isPindahDanaKeluar
+                            ? "Akun Sumber"
+                            : isPindahDanaMasuk
+                                ? "Akun Tujuan"
+                                : "Simpan/Ambil Dari (Akun)",
+                        border: const OutlineInputBorder(),
                       ),
                       items: masterAkun
                           .map(
@@ -1642,6 +1666,38 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (val) =>
                           setDialogState(() => _pilihanAkun = val!),
                     ),
+                    // Akun pasangan — tampil jika Pindah Dana
+                    if (isPindahDana) ...[
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        key: ValueKey('pasangan_${_pilihanAkun}_$_pilihanTipe'),
+                        initialValue: akunTujuan != _pilihanAkun
+                            ? akunTujuan
+                            : (masterAkun.where((a) => a != _pilihanAkun).isNotEmpty
+                                ? masterAkun.where((a) => a != _pilihanAkun).first
+                                : akunTujuan),
+                        decoration: InputDecoration(
+                          labelText: isPindahDanaKeluar ? "Akun Tujuan" : "Akun Sumber",
+                          border: const OutlineInputBorder(),
+                          prefixIcon: Icon(
+                            isPindahDanaKeluar ? Icons.arrow_forward : Icons.arrow_back,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        items: masterAkun
+                            .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                            .toList(),
+                        onChanged: (val) =>
+                            setDialogState(() => akunTujuan = val!),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isPindahDanaKeluar
+                            ? "Dana akan masuk ke akun tujuan secara otomatis"
+                            : "Dana akan keluar dari akun sumber secara otomatis",
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      ),
+                    ],
                     const SizedBox(height: 12),
                     // Picker Tanggal & Jam
                     Row(
@@ -1721,15 +1777,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   onPressed: () {
                     if (_nominalController.text.isNotEmpty) {
+                      final nominal =
+                          double.tryParse(
+                            _nominalController.text.replaceAll('.', ''),
+                          ) ??
+                          0;
+                      final transferId = DateTime.now().millisecondsSinceEpoch.toString();
                       setState(() {
                         daftarTransaksi.add(
                           Transaksi(
-                            id: DateTime.now().toString(),
-                            nominal:
-                                double.tryParse(
-                                  _nominalController.text.replaceAll('.', ''),
-                                ) ??
-                                0,
+                            id: transferId,
+                            nominal: nominal,
                             catatan: _catatanController.text,
                             tipe: _pilihanTipe,
                             kategori: _pilihanKategori,
@@ -1737,6 +1795,38 @@ class _HomeScreenState extends State<HomeScreen> {
                             tanggal: pilihanTanggal,
                           ),
                         );
+                        // Jika Pindah Dana Keluar: buat transaksi masuk ke akun tujuan
+                        if (isPindahDanaKeluar) {
+                          daftarTransaksi.add(
+                            Transaksi(
+                              id: 'transfer_masuk_$transferId',
+                              nominal: nominal,
+                              catatan: _catatanController.text.isNotEmpty
+                                  ? _catatanController.text
+                                  : 'Transfer dari $_pilihanAkun',
+                              tipe: 'Pemasukan',
+                              kategori: 'Pindah Dana',
+                              akun: akunTujuan,
+                              tanggal: pilihanTanggal,
+                            ),
+                          );
+                        }
+                        // Jika Pindah Dana Masuk: buat transaksi keluar dari akun sumber
+                        if (isPindahDanaMasuk) {
+                          daftarTransaksi.add(
+                            Transaksi(
+                              id: 'transfer_keluar_$transferId',
+                              nominal: nominal,
+                              catatan: _catatanController.text.isNotEmpty
+                                  ? _catatanController.text
+                                  : 'Transfer ke $_pilihanAkun',
+                              tipe: 'Pengeluaran',
+                              kategori: 'Pindah Dana',
+                              akun: akunTujuan,
+                              tanggal: pilihanTanggal,
+                            ),
+                          );
+                        }
                         saveData();
                         _nominalController.clear();
                         _catatanController.clear();
@@ -1948,15 +2038,16 @@ class _HomeScreenState extends State<HomeScreen> {
       _pilihanKategori = kategoriAktif.first;
     }
 
-    // Filter data berdasarkan Range Tanggal, Akun, & Hitung Saldo Bersih, Pemasukan, Pengeluaran
+    // Filter data berdasarkan Range Tanggal, Akun, & Hitung Pemasukan, Pengeluaran (Kecuali Pindah Dana)
     double totalPemasukan = 0;
     double totalPengeluaran = 0;
 
-    // Hitung total pengeluaran khusus bulan saat ini untuk warning limit
+    // Hitung total pengeluaran khusus bulan saat ini untuk warning limit (kecuali Pindah Dana)
     final DateTime nowTime = DateTime.now();
     double pengeluaranBulanIni = 0;
     for (var t in daftarTransaksi) {
       if (t.tipe == "Pengeluaran" &&
+          t.kategori != "Pindah Dana" &&
           t.tanggal.year == nowTime.year &&
           t.tanggal.month == nowTime.month) {
         pengeluaranBulanIni += t.nominal;
@@ -2004,8 +2095,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bool lolosFilter = masukRange && masukTipe && masukAkun && masukKategori;
 
       if (lolosFilter) {
-        if (t.tipe == "Pemasukan") totalPemasukan += t.nominal;
-        if (t.tipe == "Pengeluaran") totalPengeluaran += t.nominal;
+        if (t.kategori != "Pindah Dana") {
+          if (t.tipe == "Pemasukan") totalPemasukan += t.nominal;
+          if (t.tipe == "Pengeluaran") totalPengeluaran += t.nominal;
+        }
       }
       return lolosFilter;
     }).toList();
@@ -2022,8 +2115,6 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       transaksiPerTanggal[key]!.add(t);
     }
-
-    double totalSaldo = totalPemasukan - totalPengeluaran;
 
     String appBarTitle;
     if (_currentIndex == 0) {
@@ -2175,23 +2266,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Center(
-            child: OutlinedButton.icon(
-              onPressed: () => _exportToExcel(riwayatTerfilter),
-              icon: const Icon(Icons.file_download, size: 18, color: Colors.green),
-              label: const Text(
-                "Ekspor Laporan Excel",
-                style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.green, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              ),
-            ),
-          ),
           if (limitPengeluaran > 0 &&
               pengeluaranBulanIni > limitPengeluaran) ...[
             Container(
@@ -2295,39 +2369,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ],
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 20),
-
-                  // Saldo Bersih + Tombol Mata
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          setState(() {
-                            isHideSaldo = !isHideSaldo;
-                            isHideSaldoGlobal = isHideSaldo;
-                          });
-                          saveData();
-                        },
-                        icon: Icon(
-                          isHideSaldo ? Icons.visibility_off : Icons.visibility,
-                          size: 20,
-                        ),
-                      ),
-                      Text(
-                        isHideSaldo
-                            ? "Saldo Bersih: Rp ••••••••"
-                            : "Saldo Bersih: Rp ${formatRibuan(totalSaldo)}",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: totalSaldo >= 0
-                              ? Colors.greenAccent
-                              : Colors.redAccent,
-                        ),
                       ),
                     ],
                   ),
@@ -2436,20 +2477,33 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(appBarTitle),
         automaticallyImplyLeading: false,
-        actions: _currentIndex == 0
-            ? [
-                IconButton(
-                  icon: const Icon(Icons.file_download_outlined),
-                  tooltip: "Ekspor Excel",
-                  onPressed: () => _exportToExcel(riwayatTerfilter),
-                ),
+        actions: [
+                if (_currentIndex == 0) ...[
+                  IconButton(
+                    icon: Icon(
+                      isHideSaldo ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    ),
+                    tooltip: isHideSaldo ? "Tampilkan Saldo" : "Sembunyikan Saldo",
+                    onPressed: () {
+                      setState(() {
+                        isHideSaldo = !isHideSaldo;
+                        isHideSaldoGlobal = isHideSaldo;
+                      });
+                      saveData();
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.file_download_outlined),
+                    tooltip: "Ekspor Excel",
+                    onPressed: () => _exportToExcel(riwayatTerfilter),
+                  ),
+                ],
                 IconButton(
                   icon: const Icon(Icons.settings_outlined),
                   tooltip: "Pengaturan",
                   onPressed: _showSettingsDialog,
                 ),
-              ]
-            : null,
+              ],
       ),
       body: PageView(
         controller: _pageController,

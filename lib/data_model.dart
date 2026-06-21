@@ -362,7 +362,13 @@ void loadData() {
   if (savedAkun != null) {
     masterAkun = List<String>.from(savedAkun);
   } else {
-    masterAkun = ["Tunai"];
+    masterAkun = ["Cash Bank"];
+  }
+
+  // Deteksi migrasi "Tunai" -> "Cash Bank" (rename di masterAkun, saldoAwalMap, akunUtama dilakukan setelah semua data dimuat)
+  final needsTunaiMigration = masterAkun.contains("Tunai");
+  if (needsTunaiMigration) {
+    masterAkun[masterAkun.indexOf("Tunai")] = "Cash Bank";
   }
 
   // Load Akun Utama
@@ -386,6 +392,13 @@ void loadData() {
   } else {
     saldoAwalMap = {};
   }
+
+  // Migrasi: pindahkan saldo awal "Tunai" -> "Cash Bank" (setelah saldoAwalMap dimuat)
+  if (saldoAwalMap.containsKey("Tunai")) {
+    saldoAwalMap["Cash Bank"] = saldoAwalMap.remove("Tunai")!;
+  }
+  // Migrasi: pastikan akunUtama tidak masih "Tunai"
+  if (akunUtama == "Tunai") akunUtama = "Cash Bank";
 
   // Load Kategori (jika kosong, buat default)
   final List<dynamic>? savedKategori = box.get('kategori');
@@ -457,6 +470,24 @@ void loadData() {
       KategoriModel(nama: "Investasi", tipe: "Pemasukan", ikon: Icons.trending_up),
     );
   }
+
+  // Pastikan kategori "Pindah Dana" ada untuk Pemasukan dan Pengeluaran
+  final hasPindahDanaPengeluaran = masterKategori.any(
+    (k) => k.nama == "Pindah Dana" && k.tipe == "Pengeluaran",
+  );
+  if (!hasPindahDanaPengeluaran) {
+    masterKategori.add(
+      KategoriModel(nama: "Pindah Dana", tipe: "Pengeluaran", ikon: Icons.swap_horiz),
+    );
+  }
+  final hasPindahDanaPemasukan = masterKategori.any(
+    (k) => k.nama == "Pindah Dana" && k.tipe == "Pemasukan",
+  );
+  if (!hasPindahDanaPemasukan) {
+    masterKategori.add(
+      KategoriModel(nama: "Pindah Dana", tipe: "Pemasukan", ikon: Icons.swap_horiz),
+    );
+  }
   // Load Transaksi
   final List<dynamic>? savedTransaksi = box.get('transaksi');
   if (savedTransaksi != null) {
@@ -465,6 +496,13 @@ void loadData() {
         .toList();
   } else {
     daftarTransaksi = [];
+  }
+
+  // Migrasi: ganti nama akun "Tunai" pada transaksi menjadi "Cash Bank"
+  for (var t in daftarTransaksi) {
+    if (t.akun == "Tunai") {
+      t.akun = "Cash Bank";
+    }
   }
 
   // Load Kontak Utang
