@@ -54,8 +54,9 @@ class _KategoriScreenState extends State<KategoriScreen>
     showDialog(
       context: context,
       builder: (context) {
-        final TextEditingController namaEditController =
-            TextEditingController(text: item.nama);
+        final TextEditingController namaEditController = TextEditingController(
+          text: item.nama,
+        );
         String editTipe = item.tipe;
         IconData editIkon = item.ikon;
 
@@ -89,10 +90,11 @@ class _KategoriScreenState extends State<KategoriScreen>
                         border: OutlineInputBorder(),
                       ),
                       items: _tabs
-                          .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                          .map(
+                            (t) => DropdownMenuItem(value: t, child: Text(t)),
+                          )
                           .toList(),
-                      onChanged: (val) =>
-                          setDialogState(() => editTipe = val!),
+                      onChanged: (val) => setDialogState(() => editTipe = val!),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<IconData>(
@@ -100,8 +102,10 @@ class _KategoriScreenState extends State<KategoriScreen>
                       decoration: const InputDecoration(
                         labelText: "Pilih Logo Kategori",
                         border: OutlineInputBorder(),
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                       ),
                       items: daftarPilihanIkon.map((IconData ikon) {
                         return DropdownMenuItem<IconData>(
@@ -115,8 +119,7 @@ class _KategoriScreenState extends State<KategoriScreen>
                           ),
                         );
                       }).toList(),
-                      onChanged: (val) =>
-                          setDialogState(() => editIkon = val!),
+                      onChanged: (val) => setDialogState(() => editIkon = val!),
                     ),
                   ],
                 ),
@@ -164,15 +167,15 @@ class _KategoriScreenState extends State<KategoriScreen>
   }
 
   void _hapusKategori(KategoriModel item) {
-    int countTipe =
-        masterKategori.where((k) => k.tipe == item.tipe).length;
+    int countTipe = masterKategori.where((k) => k.tipe == item.tipe).length;
     if (countTipe <= 1) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Tidak Dapat Menghapus"),
           content: Text(
-              "Minimal harus ada 1 kategori untuk tipe ${item.tipe}."),
+            "Minimal harus ada 1 kategori untuk tipe ${item.tipe}.",
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -189,7 +192,8 @@ class _KategoriScreenState extends State<KategoriScreen>
       builder: (context) => AlertDialog(
         title: const Text("Hapus Kategori"),
         content: Text(
-            "Apakah Anda yakin ingin menghapus kategori '${item.nama}'?"),
+          "Apakah Anda yakin ingin menghapus kategori '${item.nama}'?",
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -213,7 +217,11 @@ class _KategoriScreenState extends State<KategoriScreen>
   }
 
   /// Menampilkan detail kategori dalam popup bottom sheet
-  void _showDetailKategori(KategoriModel item, Color bgColor, Color accentColor) {
+  void _showDetailKategori(
+    KategoriModel item,
+    Color bgColor,
+    Color accentColor,
+  ) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -260,7 +268,10 @@ class _KategoriScreenState extends State<KategoriScreen>
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 3,
+                          ),
                           decoration: BoxDecoration(
                             color: accentColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
@@ -288,17 +299,39 @@ class _KategoriScreenState extends State<KategoriScreen>
                 children: [
                   Icon(Icons.label_outline, size: 18, color: Colors.grey[600]),
                   const SizedBox(width: 10),
-                  Text("Nama: ", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                  Text(item.nama, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  Text(
+                    "Nama: ",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
+                  Text(
+                    item.nama,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.swap_vert_outlined, size: 18, color: Colors.grey[600]),
+                  Icon(
+                    Icons.swap_vert_outlined,
+                    size: 18,
+                    color: Colors.grey[600],
+                  ),
                   const SizedBox(width: 10),
-                  Text("Tipe: ", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                  Text(item.tipe, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                  Text(
+                    "Tipe: ",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
+                  Text(
+                    item.tipe,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -308,11 +341,16 @@ class _KategoriScreenState extends State<KategoriScreen>
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      label: const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      label: const Text(
+                        "Hapus",
+                        style: TextStyle(color: Colors.red),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -329,7 +367,9 @@ class _KategoriScreenState extends State<KategoriScreen>
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -408,8 +448,10 @@ class _KategoriScreenState extends State<KategoriScreen>
                 ),
               ],
             ),
-            title: Text(item.nama,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
+            title: Text(
+              item.nama,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
             trailing: const Icon(Icons.chevron_right, color: Colors.grey),
           ),
         );
@@ -419,56 +461,56 @@ class _KategoriScreenState extends State<KategoriScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // ===== TAB BAR =====
-        TabBar(
-          controller: _tabController,
-          labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          indicatorColor: Colors.green,
-          labelColor: Colors.green,
-          unselectedLabelColor: Colors.grey,
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.arrow_downward, size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Pengeluaran (${masterKategori.where((k) => k.tipe == "Pengeluaran").length})",
-                  ),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.arrow_upward, size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Pemasukan (${masterKategori.where((k) => k.tipe == "Pemasukan").length})",
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const Divider(height: 1),
-
-        // ===== TAB VIEW =====
-        Expanded(
-          child: TabBarView(
+    return Scaffold(
+      appBar: AppBar(title: const Text('Kategori')),
+      body: Column(
+        children: [
+          // ===== TAB BAR =====
+          TabBar(
             controller: _tabController,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              _buildList("Pengeluaran"),
-              _buildList("Pemasukan"),
+            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+            indicatorColor: Colors.green,
+            labelColor: Colors.green,
+            unselectedLabelColor: Colors.grey,
+            tabs: [
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.arrow_downward, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Pengeluaran (${masterKategori.where((k) => k.tipe == "Pengeluaran").length})",
+                    ),
+                  ],
+                ),
+              ),
+              Tab(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.arrow_upward, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Pemasukan (${masterKategori.where((k) => k.tipe == "Pemasukan").length})",
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-        ),
-      ],
+          const Divider(height: 1),
+
+          // ===== TAB VIEW =====
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [_buildList("Pengeluaran"), _buildList("Pemasukan")],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

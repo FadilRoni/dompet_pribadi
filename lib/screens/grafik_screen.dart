@@ -20,20 +20,29 @@ class _GrafikScreenState extends State<GrafikScreen>
   String _chartType = 'Line'; // default grafik garis
   String _selectedAkun = 'Semua';
   String _selectedKategori = 'Semua';
-  DateTime rangeMulai =
-      DateTime(DateTime.now().year, DateTime.now().month, 1);
-  DateTime rangeSelesai =
-      DateTime(DateTime.now().year, DateTime.now().month + 1, 0);
+  DateTime rangeMulai = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime rangeSelesai = DateTime(
+    DateTime.now().year,
+    DateTime.now().month + 1,
+    0,
+  );
 
   final List<Color> palette = const [
-    Color(0xFF6C63FF), Color(0xFFFF2E93), Color(0xFF00ADB5),
-    Color(0xFFFF8E25), Color(0xFF4E9F3D), Color(0xFFFFD369),
-    Color(0xFFDE3B40), Color(0xFF2979FF), Color(0xFF00E676),
-    Color(0xFF8A3DFF), Color(0xFFF7931A), Color(0xFF627EEA),
+    Color(0xFF6C63FF),
+    Color(0xFFFF2E93),
+    Color(0xFF00ADB5),
+    Color(0xFFFF8E25),
+    Color(0xFF4E9F3D),
+    Color(0xFFFFD369),
+    Color(0xFFDE3B40),
+    Color(0xFF2979FF),
+    Color(0xFF00E676),
+    Color(0xFF8A3DFF),
+    Color(0xFFF7931A),
+    Color(0xFF627EEA),
   ];
 
   Map<String, double> _hargaLive = {};
-  bool _isLoadingPrices = false;
 
   @override
   void initState() {
@@ -51,9 +60,6 @@ class _GrafikScreenState extends State<GrafikScreen>
       }
       return;
     }
-    setState(() {
-      _isLoadingPrices = true;
-    });
     try {
       final resp = await http
           .get(Uri.parse('https://indodax.com/api/ticker_all'))
@@ -75,21 +81,16 @@ class _GrafikScreenState extends State<GrafikScreen>
         if (mounted) {
           setState(() {
             _hargaLive = harga;
-            _isLoadingPrices = false;
           });
         }
       } else {
         if (mounted) {
-          setState(() {
-            _isLoadingPrices = false;
-          });
+          setState(() {});
         }
       }
     } catch (_) {
       if (mounted) {
-        setState(() {
-          _isLoadingPrices = false;
-        });
+        setState(() {});
       }
     }
   }
@@ -103,9 +104,12 @@ class _GrafikScreenState extends State<GrafikScreen>
   // ── helpers ───────────────────────────────────────────────────
   Color _asetColor(Asset a, int idx) {
     const map = {
-      'BTC': Color(0xFFF7931A), 'ETH': Color(0xFF627EEA),
-      'USDT': Color(0xFF26A17B), 'BNB': Color(0xFFF3BA2F),
-      'SOL': Color(0xFF9945FF), 'XRP': Color(0xFF00AAE4),
+      'BTC': Color(0xFFF7931A),
+      'ETH': Color(0xFF627EEA),
+      'USDT': Color(0xFF26A17B),
+      'BNB': Color(0xFFF3BA2F),
+      'SOL': Color(0xFF9945FF),
+      'XRP': Color(0xFF00AAE4),
     };
     if (a.assetType == 'deposito') return const Color(0xFF6C63FF);
     return map[a.symbol] ?? palette[idx % palette.length];
@@ -152,10 +156,7 @@ class _GrafikScreenState extends State<GrafikScreen>
         Expanded(
           child: TabBarView(
             controller: _tabController,
-            children: [
-              _buildTransaksiTab(isDark),
-              _buildAsetTab(isDark),
-            ],
+            children: [_buildTransaksiTab(isDark), _buildAsetTab(isDark)],
           ),
         ),
       ],
@@ -200,18 +201,24 @@ class _GrafikScreenState extends State<GrafikScreen>
     // Harian untuk grafik garis/kolom
     final List<DateTime> days = [];
     final List<double> dayVals = [];
-    DateTime cur =
-        DateTime(rangeMulai.year, rangeMulai.month, rangeMulai.day);
-    final end =
-        DateTime(rangeSelesai.year, rangeSelesai.month, rangeSelesai.day);
+    DateTime cur = DateTime(rangeMulai.year, rangeMulai.month, rangeMulai.day);
+    final end = DateTime(
+      rangeSelesai.year,
+      rangeSelesai.month,
+      rangeSelesai.day,
+    );
     while (!cur.isAfter(end)) {
       days.add(cur);
-      dayVals.add(filtered
-          .where((t) =>
-              t.tanggal.year == cur.year &&
-              t.tanggal.month == cur.month &&
-              t.tanggal.day == cur.day)
-          .fold(0, (s, t) => s + t.nominal));
+      dayVals.add(
+        filtered
+            .where(
+              (t) =>
+                  t.tanggal.year == cur.year &&
+                  t.tanggal.month == cur.month &&
+                  t.tanggal.day == cur.day,
+            )
+            .fold(0, (s, t) => s + t.nominal),
+      );
       cur = cur.add(const Duration(days: 1));
     }
 
@@ -229,7 +236,8 @@ class _GrafikScreenState extends State<GrafikScreen>
         // Kategori belum ada di sorted (tidak ada transaksi), pakai warna dari
         // posisi kategori dalam daftar master untuk konsistensi
         final masterIdx = kategoriAktif.indexOf(_selectedKategori);
-        lineColor = palette[masterIdx.clamp(0, palette.length - 1) % palette.length];
+        lineColor =
+            palette[masterIdx.clamp(0, palette.length - 1) % palette.length];
       }
     }
 
@@ -243,57 +251,75 @@ class _GrafikScreenState extends State<GrafikScreen>
           const SizedBox(height: 10),
 
           // ── Filter tipe + chart type ──
-          Row(children: [
-            Expanded(child: _dropdown(
-              label: 'Tipe',
-              value: _selectedTipe,
-              items: const ['Pengeluaran', 'Pemasukan'],
-              onChanged: (v) => setState(() {
-                _selectedTipe = v!;
-                _selectedKategori = 'Semua';
-              }),
-            )),
-            const SizedBox(width: 10),
-            Expanded(child: _dropdown(
-              label: 'Grafik',
-              value: _chartType,
-              items: const ['Line', 'Pie'],
-              labels: const ['Grafik Garis', 'Grafik Pie'],
-              onChanged: (v) => setState(() => _chartType = v!),
-            )),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: _dropdown(
+                  label: 'Tipe',
+                  value: _selectedTipe,
+                  items: const ['Pengeluaran', 'Pemasukan'],
+                  onChanged: (v) => setState(() {
+                    _selectedTipe = v!;
+                    _selectedKategori = 'Semua';
+                  }),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _dropdown(
+                  label: 'Grafik',
+                  value: _chartType,
+                  items: const ['Line', 'Pie'],
+                  labels: const ['Grafik Garis', 'Grafik Pie'],
+                  onChanged: (v) => setState(() => _chartType = v!),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 10),
 
           // ── Filter akun + kategori ──
-          Row(children: [
-            Expanded(child: DropdownButtonFormField<String>(
-              key: ValueKey('akun_$_selectedAkun'),
-              initialValue: _selectedAkun,
-              decoration: const InputDecoration(
-                labelText: 'Akun',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('akun_$_selectedAkun'),
+                  initialValue: _selectedAkun,
+                  decoration: const InputDecoration(
+                    labelText: 'Akun',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: ['Semua', ...masterAkun]
+                      .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedAkun = v!),
+                ),
               ),
-              items: ['Semua', ...masterAkun]
-                  .map((a) => DropdownMenuItem(value: a, child: Text(a)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedAkun = v!),
-            )),
-            const SizedBox(width: 10),
-            Expanded(child: DropdownButtonFormField<String>(
-              key: ValueKey('kat_${_selectedTipe}_$_selectedKategori'),
-              initialValue: _selectedKategori,
-              decoration: const InputDecoration(
-                labelText: 'Kategori',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              const SizedBox(width: 10),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  key: ValueKey('kat_${_selectedTipe}_$_selectedKategori'),
+                  initialValue: _selectedKategori,
+                  decoration: const InputDecoration(
+                    labelText: 'Kategori',
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
+                    ),
+                  ),
+                  items: ['Semua', ...kategoriAktif]
+                      .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                      .toList(),
+                  onChanged: (v) => setState(() => _selectedKategori = v!),
+                ),
               ),
-              items: ['Semua', ...kategoriAktif]
-                  .map((k) => DropdownMenuItem(value: k, child: Text(k)))
-                  .toList(),
-              onChanged: (v) => setState(() => _selectedKategori = v!),
-            )),
-          ]),
+            ],
+          ),
           const SizedBox(height: 12),
 
           // ── Total card ──
@@ -303,16 +329,23 @@ class _GrafikScreenState extends State<GrafikScreen>
                 : Colors.green.withValues(alpha: 0.12),
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Column(children: [
-                Text('Total $_selectedTipe',
-                    style: TextStyle(color: Colors.grey[600])),
-                const SizedBox(height: 4),
-                Text('Rp ${formatRibuan(total)}',
+              child: Column(
+                children: [
+                  Text(
+                    'Total $_selectedTipe',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Rp ${formatRibuan(total)}',
                     style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: accentColor)),
-              ]),
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: accentColor,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -332,9 +365,10 @@ class _GrafikScreenState extends State<GrafikScreen>
                           ? 'Tren Harian — ${_selectedKategori == 'Semua' ? _selectedTipe : _selectedKategori}'
                           : 'Distribusi per Kategori',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: _chartType == 'Line' ? lineColor : null),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: _chartType == 'Line' ? lineColor : null,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
@@ -358,8 +392,7 @@ class _GrafikScreenState extends State<GrafikScreen>
                               painter: DonutPainter(
                                 values: sorted.map((e) => e.value).toList(),
                                 colors: palette,
-                                bgColor:
-                                    Theme.of(context).cardColor,
+                                bgColor: Theme.of(context).cardColor,
                               ),
                             ),
                     ),
@@ -371,39 +404,47 @@ class _GrafikScreenState extends State<GrafikScreen>
                     Text(
                       'Rincian per Kategori:',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey[700]),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ...sorted.asMap().entries.map((entry) {
                       final i = entry.key;
                       final cat = entry.value.key;
                       final val = entry.value.value;
-                      final pct =
-                          total > 0 ? (val / total * 100) : 0.0;
+                      final pct = total > 0 ? (val / total * 100) : 0.0;
                       final col = palette[i % palette.length];
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(children: [
-                          Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                                color: col, shape: BoxShape.circle),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(cat,
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: col,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                cat,
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w500)),
-                          ),
-                          Text(
-                            '${pct.toStringAsFixed(1)}%  Rp ${formatRibuan(val)}',
-                            style: TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '${pct.toStringAsFixed(1)}%  Rp ${formatRibuan(val)}',
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: col),
-                          ),
-                        ]),
+                                color: col,
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     }),
                   ],
@@ -415,15 +456,18 @@ class _GrafikScreenState extends State<GrafikScreen>
     );
   }
 
-
   // ═══════════════════════════════════════════════════════════════
   //  TAB 2 — ASET (Pie Donut + Saldo Akun)
   // ═══════════════════════════════════════════════════════════════
   Widget _buildAsetTab(bool isDark) {
     // ── Saldo tiap akun ─────────────────────────────────────────
     final List<Color> akunColors = const [
-      Color(0xFF00BCD4), Color(0xFF009688), Color(0xFF4CAF50),
-      Color(0xFF8BC34A), Color(0xFF03A9F4), Color(0xFF00ACC1),
+      Color(0xFF00BCD4),
+      Color(0xFF009688),
+      Color(0xFF4CAF50),
+      Color(0xFF8BC34A),
+      Color(0xFF03A9F4),
+      Color(0xFF00ACC1),
     ];
     final List<_AsetSlice> akunSlices = [];
     double totalSaldo = 0;
@@ -437,12 +481,14 @@ class _GrafikScreenState extends State<GrafikScreen>
       }
       if (saldo > 0) {
         totalSaldo += saldo;
-        akunSlices.add(_AsetSlice(
-          label: nama,
-          sublabel: 'Saldo Akun',
-          nilai: saldo,
-          color: akunColors[i % akunColors.length],
-        ));
+        akunSlices.add(
+          _AsetSlice(
+            label: nama,
+            sublabel: 'Saldo Akun',
+            nilai: saldo,
+            color: akunColors[i % akunColors.length],
+          ),
+        );
       }
     }
 
@@ -466,8 +512,7 @@ class _GrafikScreenState extends State<GrafikScreen>
         nilai: nilai,
         color: _asetColor(a, e.key),
       );
-    }).toList()
-      ..sort((a, b) => b.nilai.compareTo(a.nilai));
+    }).toList()..sort((a, b) => b.nilai.compareTo(a.nilai));
 
     final totalAset = asetSlices.fold<double>(0, (s, e) => s + e.nilai);
     final grandTotal = totalAset + totalSaldo;
@@ -475,12 +520,17 @@ class _GrafikScreenState extends State<GrafikScreen>
 
     if (allSlices.isEmpty) {
       return Center(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 12),
-          const Text('Belum ada data aset atau akun.',
-              style: TextStyle(color: Colors.grey)),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 12),
+            const Text(
+              'Belum ada data aset atau akun.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
       );
     }
 
@@ -500,26 +550,36 @@ class _GrafikScreenState extends State<GrafikScreen>
               borderRadius: BorderRadius.circular(16),
             ),
             padding: const EdgeInsets.all(20),
-            child: Column(children: [
-              const Text('Total Kekayaan Bersih',
-                  style: TextStyle(color: Colors.white70, fontSize: 13)),
-              const SizedBox(height: 6),
-              Text('Rp ${_fmt(grandTotal)}',
+            child: Column(
+              children: [
+                const Text(
+                  'Total Kekayaan Bersih',
+                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Rp ${_fmt(grandTotal)}',
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _subHeader('Aset Investasi', totalAset, Colors.white),
-                  Container(width: 1, height: 32, color: Colors.white24),
-                  _subHeader('Saldo Akun', totalSaldo,
-                      const Color(0xFF80DEEA)),
-                ],
-              ),
-            ]),
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _subHeader('Aset Investasi', totalAset, Colors.white),
+                    Container(width: 1, height: 32, color: Colors.white24),
+                    _subHeader(
+                      'Saldo Akun',
+                      totalSaldo,
+                      const Color(0xFF80DEEA),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -530,10 +590,11 @@ class _GrafikScreenState extends State<GrafikScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Distribusi Kekayaan',
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 15),
-                      textAlign: TextAlign.center),
+                  const Text(
+                    'Distribusi Kekayaan',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
                   Text(
                     '${asetSlices.length} aset  ·  ${akunSlices.length} akun',
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
@@ -555,8 +616,12 @@ class _GrafikScreenState extends State<GrafikScreen>
                   // Aset section
                   if (asetSlices.isNotEmpty) ...[
                     const Divider(),
-                    _sectionHeader('📈  Aset Investasi',
-                        totalAset, grandTotal, const Color(0xFF6C63FF)),
+                    _sectionHeader(
+                      '📈  Aset Investasi',
+                      totalAset,
+                      grandTotal,
+                      const Color(0xFF6C63FF),
+                    ),
                     const SizedBox(height: 4),
                     ...asetSlices.map((s) => _sliceRow(s, grandTotal)),
                   ],
@@ -565,8 +630,12 @@ class _GrafikScreenState extends State<GrafikScreen>
                   if (akunSlices.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     const Divider(),
-                    _sectionHeader('🏦  Saldo Akun',
-                        totalSaldo, grandTotal, const Color(0xFF00BCD4)),
+                    _sectionHeader(
+                      '🏦  Saldo Akun',
+                      totalSaldo,
+                      grandTotal,
+                      const Color(0xFF00BCD4),
+                    ),
                     const SizedBox(height: 4),
                     ...akunSlices.map((s) => _sliceRow(s, grandTotal)),
                   ],
@@ -580,35 +649,47 @@ class _GrafikScreenState extends State<GrafikScreen>
   }
 
   Widget _subHeader(String label, double val, Color valColor) {
-    return Column(children: [
-      Text(label,
-          style: const TextStyle(color: Colors.white60, fontSize: 11)),
-      const SizedBox(height: 3),
-      Text('Rp ${_fmt(val)}',
+    return Column(
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 11),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          'Rp ${_fmt(val)}',
           style: TextStyle(
-              color: valColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 14)),
-    ]);
+            color: valColor,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _sectionHeader(
-      String title, double sub, double grand, Color color) {
+  Widget _sectionHeader(String title, double sub, double grand, Color color) {
     final pct = grand > 0 ? sub / grand * 100 : 0.0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(children: [
-        Expanded(
-          child: Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 13)),
-        ),
-        Text('${pct.toStringAsFixed(1)}%  Rp ${_fmt(sub)}',
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            ),
+          ),
+          Text(
+            '${pct.toStringAsFixed(1)}%  Rp ${_fmt(sub)}',
             style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: color,
-                fontSize: 12)),
-      ]),
+              fontWeight: FontWeight.bold,
+              color: color,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -616,41 +697,52 @@ class _GrafikScreenState extends State<GrafikScreen>
     final pct = grand > 0 ? s.nilai / grand * 100 : 0.0;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(children: [
-        const SizedBox(width: 14),
-        Container(
-          width: 10, height: 10,
-          decoration:
-              BoxDecoration(color: s.color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(s.label,
+      child: Row(
+        children: [
+          const SizedBox(width: 14),
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(color: s.color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  s.label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13)),
-              Text(s.sublabel,
-                  style:
-                      TextStyle(color: Colors.grey[500], fontSize: 11)),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  s.sublabel,
+                  style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Rp ${_fmt(s.nilai)}',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: s.color,
+                  fontSize: 13,
+                ),
+              ),
+              Text(
+                '${pct.toStringAsFixed(1)}%',
+                style: TextStyle(color: Colors.grey[500], fontSize: 11),
+              ),
             ],
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text('Rp ${_fmt(s.nilai)}',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: s.color,
-                    fontSize: 13)),
-            Text('${pct.toStringAsFixed(1)}%',
-                style: TextStyle(
-                    color: Colors.grey[500], fontSize: 11)),
-          ],
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -665,26 +757,30 @@ class _GrafikScreenState extends State<GrafikScreen>
             TextButton.icon(
               icon: const Icon(Icons.calendar_today, size: 14),
               label: Text(
-                  'Dari: ${rangeMulai.day}/${rangeMulai.month}/${rangeMulai.year}'),
+                'Dari: ${rangeMulai.day}/${rangeMulai.month}/${rangeMulai.year}',
+              ),
               onPressed: () async {
                 final p = await showDatePicker(
-                    context: context,
-                    initialDate: rangeMulai,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030));
+                  context: context,
+                  initialDate: rangeMulai,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
                 if (p != null) setState(() => rangeMulai = p);
               },
             ),
             TextButton.icon(
               icon: const Icon(Icons.calendar_today, size: 14),
               label: Text(
-                  'Sampai: ${rangeSelesai.day}/${rangeSelesai.month}/${rangeSelesai.year}'),
+                'Sampai: ${rangeSelesai.day}/${rangeSelesai.month}/${rangeSelesai.year}',
+              ),
               onPressed: () async {
                 final p = await showDatePicker(
-                    context: context,
-                    initialDate: rangeSelesai,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030));
+                  context: context,
+                  initialDate: rangeSelesai,
+                  firstDate: DateTime(2020),
+                  lastDate: DateTime(2030),
+                );
                 if (p != null) setState(() => rangeSelesai = p);
               },
             ),
@@ -706,8 +802,7 @@ class _GrafikScreenState extends State<GrafikScreen>
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       ),
       items: items.asMap().entries.map((e) {
         final lbl = labels != null ? labels[e.key] : e.value;
@@ -721,12 +816,16 @@ class _GrafikScreenState extends State<GrafikScreen>
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Column(children: [
-          Icon(Icons.bar_chart, size: 60, color: Colors.grey[400]),
-          const SizedBox(height: 10),
-          const Text('Tidak ada data pada periode ini.',
-              style: TextStyle(color: Colors.grey)),
-        ]),
+        child: Column(
+          children: [
+            Icon(Icons.bar_chart, size: 60, color: Colors.grey[400]),
+            const SizedBox(height: 10),
+            const Text(
+              'Tidak ada data pada periode ini.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -738,11 +837,12 @@ class _AsetSlice {
   final String sublabel;
   final double nilai;
   final Color color;
-  _AsetSlice(
-      {required this.label,
-      required this.sublabel,
-      required this.nilai,
-      required this.color});
+  _AsetSlice({
+    required this.label,
+    required this.sublabel,
+    required this.nilai,
+    required this.color,
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -754,10 +854,11 @@ class DonutPainter extends CustomPainter {
   final List<Color> colors;
   final Color bgColor;
 
-  DonutPainter(
-      {required this.values,
-      required this.colors,
-      required this.bgColor});
+  DonutPainter({
+    required this.values,
+    required this.colors,
+    required this.bgColor,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -771,23 +872,28 @@ class DonutPainter extends CustomPainter {
     double start = -pi / 2;
     for (int i = 0; i < values.length; i++) {
       final sweep = (values[i] / total) * 2 * pi;
-      canvas.drawArc(rect, start, sweep, true,
-          Paint()..color = colors[i % colors.length]);
       canvas.drawArc(
-          rect,
-          start,
-          sweep,
-          true,
-          Paint()
-            ..color = bgColor
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+        rect,
+        start,
+        sweep,
+        true,
+        Paint()..color = colors[i % colors.length],
+      );
+      canvas.drawArc(
+        rect,
+        start,
+        sweep,
+        true,
+        Paint()
+          ..color = bgColor
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
       start += sweep;
     }
 
     // Donut hole
-    canvas.drawCircle(center, radius * 0.55,
-        Paint()..color = bgColor);
+    canvas.drawCircle(center, radius * 0.55, Paint()..color = bgColor);
   }
 
   @override
@@ -823,12 +929,21 @@ class LineChartPainter extends CustomPainter {
     // Grid
     for (int i = 0; i <= 4; i++) {
       final y = tp + ch * (1 - i / 4);
-      canvas.drawLine(Offset(lp, y), Offset(size.width - rp, y),
-          Paint()
-            ..color = gridColor
-            ..strokeWidth = 0.5);
-      _drawText(canvas, _fmtK(maxV * i / 4), textColor, 9,
-          Offset(0, y - 5), lp - 5);
+      canvas.drawLine(
+        Offset(lp, y),
+        Offset(size.width - rp, y),
+        Paint()
+          ..color = gridColor
+          ..strokeWidth = 0.5,
+      );
+      _drawText(
+        canvas,
+        _fmtK(maxV * i / 4),
+        textColor,
+        9,
+        Offset(0, y - 5),
+        lp - 5,
+      );
     }
 
     // Points
@@ -843,8 +958,12 @@ class LineChartPainter extends CustomPainter {
     for (int i = 0; i < n; i++) {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTRB(pts[i].dx - bw / 2, pts[i].dy,
-              pts[i].dx + bw / 2, size.height - bp),
+          Rect.fromLTRB(
+            pts[i].dx - bw / 2,
+            pts[i].dy,
+            pts[i].dx + bw / 2,
+            size.height - bp,
+          ),
           const Radius.circular(3),
         ),
         Paint()..color = lineColor.withValues(alpha: 0.35),
@@ -858,12 +977,13 @@ class LineChartPainter extends CustomPainter {
         path.lineTo(pts[i].dx, pts[i].dy);
       }
       canvas.drawPath(
-          path,
-          Paint()
-            ..color = lineColor
-            ..strokeWidth = 2.5
-            ..style = PaintingStyle.stroke
-            ..strokeCap = StrokeCap.round);
+        path,
+        Paint()
+          ..color = lineColor
+          ..strokeWidth = 2.5
+          ..style = PaintingStyle.stroke
+          ..strokeCap = StrokeCap.round,
+      );
     }
 
     // Dots
@@ -876,17 +996,31 @@ class LineChartPainter extends CustomPainter {
     final interval = (n / 6).ceil().clamp(1, n);
     for (int i = 0; i < n; i++) {
       if (i % interval == 0 || i == n - 1) {
-        _drawText(canvas, '${days[i].day}/${days[i].month}', textColor, 8,
-            Offset(pts[i].dx - 10, size.height - bp + 5), 24);
+        _drawText(
+          canvas,
+          '${days[i].day}/${days[i].month}',
+          textColor,
+          8,
+          Offset(pts[i].dx - 10, size.height - bp + 5),
+          24,
+        );
       }
     }
   }
 
-  void _drawText(Canvas canvas, String text, Color color, double fontSize,
-      Offset position, double maxW) {
+  void _drawText(
+    Canvas canvas,
+    String text,
+    Color color,
+    double fontSize,
+    Offset position,
+    double maxW,
+  ) {
     final tp = TextPainter(
       text: TextSpan(
-          text: text, style: TextStyle(color: color, fontSize: fontSize)),
+        text: text,
+        style: TextStyle(color: color, fontSize: fontSize),
+      ),
       textDirection: TextDirection.ltr,
     )..layout(maxWidth: maxW);
     tp.paint(canvas, position);

@@ -63,8 +63,11 @@ class _AkunScreenState extends State<AkunScreen> {
                       color: Colors.blue.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(18),
                     ),
-                    child: const Icon(Icons.account_balance_wallet,
-                        color: Colors.blue, size: 28),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      color: Colors.blue,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -84,11 +87,16 @@ class _AkunScreenState extends State<AkunScreen> {
               // Saldo
               Row(
                 children: [
-                  Icon(Icons.account_balance_outlined,
-                      size: 18, color: Colors.grey[600]),
+                  Icon(
+                    Icons.account_balance_outlined,
+                    size: 18,
+                    color: Colors.grey[600],
+                  ),
                   const SizedBox(width: 10),
-                  Text("Saldo: ",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(
+                    "Saldo: ",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
                   Text(
                     "Rp ${formatRibuan(saldo.abs())}",
                     style: TextStyle(
@@ -98,23 +106,32 @@ class _AkunScreenState extends State<AkunScreen> {
                     ),
                   ),
                   if (!isPositif)
-                    Text(" (minus)",
-                        style: TextStyle(color: Colors.red[400], fontSize: 12)),
+                    Text(
+                      " (minus)",
+                      style: TextStyle(color: Colors.red[400], fontSize: 12),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
               // Jumlah transaksi
               Row(
                 children: [
-                  Icon(Icons.receipt_long_outlined,
-                      size: 18, color: Colors.grey[600]),
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 18,
+                    color: Colors.grey[600],
+                  ),
                   const SizedBox(width: 10),
-                  Text("Transaksi: ",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(
+                    "Transaksi: ",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
                   Text(
                     "${daftarTransaksi.where((t) => t.akun == namaAkun).length} transaksi",
                     style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 14),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
                   ),
                 ],
               ),
@@ -125,26 +142,42 @@ class _AkunScreenState extends State<AkunScreen> {
                   Icon(
                     namaAkun == akunUtama ? Icons.star : Icons.star_border,
                     size: 18,
-                    color: namaAkun == akunUtama ? Colors.amber[700] : Colors.grey[600],
+                    color: namaAkun == akunUtama
+                        ? Colors.amber[700]
+                        : Colors.grey[600],
                   ),
                   const SizedBox(width: 10),
-                  Text("Akun Utama: ",
-                      style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                  Text(
+                    "Akun Utama: ",
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  ),
                   Text(
                     namaAkun == akunUtama ? "Ya" : "Tidak",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
-                      color: namaAkun == akunUtama ? Colors.amber[800] : Colors.grey[800],
+                      color: namaAkun == akunUtama
+                          ? Colors.amber[800]
+                          : Colors.grey[800],
                     ),
                   ),
                   if (namaAkun != akunUtama) ...[
                     const Spacer(),
                     TextButton.icon(
-                      icon: const Icon(Icons.star, size: 16, color: Colors.amber),
-                      label: const Text("Set Utama", style: TextStyle(color: Colors.amber)),
+                      icon: const Icon(
+                        Icons.star,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
+                      label: const Text(
+                        "Set Utama",
+                        style: TextStyle(color: Colors.amber),
+                      ),
                       style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
@@ -166,13 +199,16 @@ class _AkunScreenState extends State<AkunScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      label:
-                          const Text("Hapus", style: TextStyle(color: Colors.red)),
+                      label: const Text(
+                        "Hapus",
+                        style: TextStyle(color: Colors.red),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -190,7 +226,8 @@ class _AkunScreenState extends State<AkunScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         Navigator.pop(ctx);
@@ -255,8 +292,10 @@ class _AkunScreenState extends State<AkunScreen> {
               onPressed: () {
                 if (editController.text.isNotEmpty) {
                   String newNama = editController.text;
-                  final String newSaldoAwalStr = saldoAwalController.text.replaceAll('.', '');
-                  final double newSaldoAwal = double.tryParse(newSaldoAwalStr) ?? 0.0;
+                  final String newSaldoAwalStr = saldoAwalController.text
+                      .replaceAll('.', '');
+                  final double newSaldoAwal =
+                      double.tryParse(newSaldoAwalStr) ?? 0.0;
 
                   setState(() {
                     masterAkun[index] = newNama;
@@ -268,7 +307,7 @@ class _AkunScreenState extends State<AkunScreen> {
                     if (newSaldoAwal > 0) {
                       saldoAwalMap[newNama] = newSaldoAwal;
                     }
-                    
+
                     // Update transaksi yang memakai akun ini
                     for (var t in daftarTransaksi) {
                       if (t.akun == oldNama) {
@@ -356,111 +395,120 @@ class _AkunScreenState extends State<AkunScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          Expanded(
-            child: masterAkun.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.account_balance_wallet_outlined,
-                          size: 64,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Belum ada akun/dompet.\nTambah akun baru via tombol \"+\" di bawah.",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: masterAkun.length,
-                    itemBuilder: (c, i) {
-                      final akunNama = masterAkun[i];
-                      final saldo = _hitungSaldo(akunNama);
-                      final isPositif = saldo >= 0;
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        child: ListTile(
-                          onTap: () => _showDetailAkun(i),
-                          leading: Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.account_balance_wallet,
-                              color: Colors.blue,
-                            ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Akun / Dompet')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: masterAkun.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.account_balance_wallet_outlined,
+                            size: 64,
+                            color: Colors.grey[500],
                           ),
-                          title: Row(
-                            children: [
-                              Text(
-                                akunNama,
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                          const SizedBox(height: 10),
+                          const Text(
+                            "Belum ada akun/dompet.\nTambah akun baru via tombol \"+\" di bawah.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: masterAkun.length,
+                      itemBuilder: (c, i) {
+                        final akunNama = masterAkun[i];
+                        final saldo = _hitungSaldo(akunNama);
+                        final isPositif = saldo >= 0;
+
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            onTap: () => _showDetailAkun(i),
+                            leading: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              if (akunNama == akunUtama) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.amber.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.star,
-                                        size: 10,
-                                        color: Colors.amber[800],
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Text(
-                                        "UTAMA",
-                                        style: TextStyle(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.amber[800],
-                                        ),
-                                      ),
-                                    ],
+                              child: const Icon(
+                                Icons.account_balance_wallet,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            title: Row(
+                              children: [
+                                Text(
+                                  akunNama,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                if (akunNama == akunUtama) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.amber.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.star,
+                                          size: 10,
+                                          color: Colors.amber[800],
+                                        ),
+                                        const SizedBox(width: 2),
+                                        Text(
+                                          "UTAMA",
+                                          style: TextStyle(
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.amber[800],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                          subtitle: Text(
-                            "Saldo: Rp ${formatRibuan(saldo.abs())}${!isPositif ? " (minus)" : ""}",
-                            style: TextStyle(
-                              color: isPositif ? Colors.green[700] : Colors.red[700],
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                            ),
+                            subtitle: Text(
+                              "Saldo: Rp ${formatRibuan(saldo.abs())}${!isPositif ? " (minus)" : ""}",
+                              style: TextStyle(
+                                color: isPositif
+                                    ? Colors.green[700]
+                                    : Colors.red[700],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                            trailing: const Icon(
+                              Icons.chevron_right,
+                              color: Colors.grey,
                             ),
                           ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
